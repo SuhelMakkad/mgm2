@@ -1,0 +1,17 @@
+{
+  "floors": 8,
+  "floorHeight": 3.2,
+  "slab": 0.3,
+  "base": 0.9,
+  "plot": 0.22,
+
+  "halfWidth": 6.78,
+  "halfDepth": 4.78,
+  "footing": 0.32,
+
+  "wingX": 12.3,
+  "wingWidth": 10.8,
+  "wingDepth": 8.6,
+  "wingHeight": 7.2,
+  "wingFooting": 0.25
+}

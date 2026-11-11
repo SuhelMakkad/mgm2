@@ -5,9 +5,9 @@ import { withBase } from '../lib/paths';
  * A scroll-driven 3D section: a building assembles in four stages as the page scrolls.
  *
  * By default it is an ordinary section: a still picture beside the four stages. The script
- * upgrades it to the pinned, live version only when that is safe (motion allowed, no data
- * saver, WebGL2, a tall enough window), loads three.js as the section approaches, and falls
- * back to the still version again if anything fails or the visitor asks for it.
+ * upgrades it to the pinned, live version only when that is safe (motion allowed, no data saver,
+ * WebGL2 and WebAssembly, a tall enough window), loads three.js and the model as the section approaches,
+ * and falls back to the still version again if anything fails or the visitor asks for it.
  */
 import Icon from './icon.astro';
 import Media from './media.astro';
@@ -113,6 +113,9 @@ const groupTitle = (groupId: string) => serviceGroups.find((group) => group.id =
 <script>
   import type { BuildScene } from '../scripts/build-scene.ts';
 
+  // Only the address of the model is bundled here; the file itself is fetched with the scene.
+  import modelUrl from '../assets/models/build-envelope.glb?url';
+
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
   const wideLayout = window.matchMedia('(min-width: 60rem)');
@@ -125,7 +128,9 @@ const groupTitle = (groupId: string) => serviceGroups.find((group) => group.id =
   const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
 
   function initStory(section: HTMLElement) {
-    const eligible = !reducedMotion.matches && !saveData && 'WebGL2RenderingContext' in window && window.innerHeight >= MIN_HEIGHT;
+    // The model is Meshopt-compressed, and its decoder is WebAssembly.
+    const capable = 'WebGL2RenderingContext' in window && 'WebAssembly' in window;
+    const eligible = !reducedMotion.matches && !saveData && capable && window.innerHeight >= MIN_HEIGHT;
 
     if (!eligible) return;
 
@@ -200,8 +205,15 @@ const groupTitle = (groupId: string) => serviceGroups.find((group) => group.id =
       return distance > 0 ? clamp01(-section.getBoundingClientRect().top / distance) : 0;
     };
 
-    /** Stage links are in the Tab order for the current stage, and for any stage that already holds focus. */
+    /**
+     * Stage links are in the Tab order for the current stage, and for any stage that already holds focus.
+     *
+     * This, `present` and `sync` can all be waiting on an animation frame when the section closes. They
+     * do nothing from then on, so the still version keeps every link reachable and no live state returns.
+     */
     const syncLinks = () => {
+      if (closed) return;
+
       links.forEach((link, index) => {
         if (!link) return;
 
@@ -212,6 +224,8 @@ const groupTitle = (groupId: string) => serviceGroups.find((group) => group.id =
 
     /** Captions and the progress rail follow what the model is showing, not the raw scroll position. */
     const present = (progress: number) => {
+      if (closed) return;
+
       const built = Math.min(progress / buildEnd, 1);
 
       let next = 0;
@@ -234,6 +248,8 @@ const groupTitle = (groupId: string) => serviceGroups.find((group) => group.id =
 
     const sync = () => {
       scheduled = false;
+
+      if (closed) return;
 
       const progress = scrollProgress();
 
@@ -343,7 +359,7 @@ const groupTitle = (groupId: string) => serviceGroups.find((group) => group.id =
     room.observe(copy);
     observers.push(room);
 
-    /* The scene: three.js is fetched once the section is within two thirds of a screen and the page is idle. */
+    /* The scene: three.js and the model are fetched once the section is within two thirds of a screen and the page is idle. */
 
     const readColors = () => {
       const styles = getComputedStyle(section);
@@ -354,16 +370,42 @@ const groupTitle = (groupId: string) => serviceGroups.find((group) => group.id =
       };
     };
 
+    const loadModel = async () => {
+      const response = await fetch(modelUrl, { signal: listeners.signal });
+
+      if (!response.ok) throw new Error(`The model could not be fetched (${response.status}).`);
+
+      return response.arrayBuffer();
+    };
+
     const start = async () => {
+      // The section may have closed between the scene being asked for and the page going idle.
+      if (closed) return;
+
       try {
-        const { createBuildScene } = await import('../scripts/build-scene.ts');
+        // The code and the model download side by side.
+        const [{ createBuildScene }, model] = await Promise.all([import('../scripts/build-scene.ts'), loadModel()]);
 
         if (closed) return;
 
-        // This draws a first frame before returning, so "ready" means a picture is really there.
-        scene = createBuildScene(canvas, { colors: readColors(), progress: scrollProgress(), onProgress: present });
+        // This draws a first frame before resolving, so "ready" means a picture is really there.
+        // It gives up, without touching the canvas, if the section closes while the model is being read.
+        scene = await createBuildScene(canvas, {
+          colors: readColors(),
+          model,
+          signal: listeners.signal,
+          progress: scrollProgress(),
+          onProgress: present,
+        });
+
+        // The page may have scrolled on while the model was being read.
+        scene.setProgress(scrollProgress());
+
         section.dataset.ready = '';
       } catch (error) {
+        // Closing the section cancels the download and the start, which is not a failure.
+        if (closed) return;
+
         console.warn('The 3D scene could not start, so the still version is shown instead.', error);
         close();
 

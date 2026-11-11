@@ -1,9 +1,10 @@
 /**
  * The 3D "how a building comes together" scene.
  *
- * Everything is procedural: instanced boxes, a lattice crane, two extruded arcade walls
- * and a dome, so there is no model file to download. A single progress value from 0 to 1
- * drives the whole build in four stages (see src/data/build-stages.ts).
+ * A single progress value from 0 to 1 drives the whole build in four stages (see
+ * src/data/build-stages.ts). The first two are procedural: the concrete frame, the services and
+ * the tower crane are instanced boxes made here. The last two, the envelope and the finish, are
+ * an authored model (see build-model.ts). Both are built to src/data/build-dimensions.json.
  *
  * Nothing here moves on its own. A frame is drawn only when progress, the pointer or the
  * size changes, so a settled scene costs no GPU time.
@@ -17,11 +18,8 @@ import {
   BufferAttribute,
   CircleGeometry,
   Color,
-  ConeGeometry,
-  CylinderGeometry,
   DirectionalLight,
   DynamicDrawUsage,
-  ExtrudeGeometry,
   Group,
   HemisphereLight,
   InstancedMesh,
@@ -31,22 +29,20 @@ import {
   MeshStandardMaterial,
   NeutralToneMapping,
   Object3D,
-  Path,
   PCFShadowMap,
   PerspectiveCamera,
-  Plane,
   PMREMGenerator,
   Scene,
   ShadowMaterial,
-  Shape,
   SphereGeometry,
-  TorusGeometry,
   Vector3,
   WebGLRenderer,
 } from 'three';
 import type { BufferGeometry, Material } from 'three';
 
+import dimensions from '../data/build-dimensions.json';
 import { BUILD_END, STAGE_STARTS } from '../data/build-stages';
+import { loadBuildModel } from './build-model';
 
 export interface SceneColors {
   accent: string;
@@ -55,6 +51,12 @@ export interface SceneColors {
 
 export interface BuildSceneOptions {
   colors: SceneColors;
+
+  /** The contents of src/assets/models/build-envelope.glb. */
+  model: ArrayBuffer;
+
+  /** Aborting this while the model is being read stops the scene from starting. */
+  signal?: AbortSignal;
 
   /** Scroll progress to start from, 0 to 1. */
   progress?: number;
@@ -77,29 +79,26 @@ export interface BuildScene {
   dispose(): void;
 }
 
-/* Dimensions, in metres. One system, so the facade closes at its corners. */
+/* Dimensions, in metres. The authored model is built to the same numbers, so it closes around the frame. */
 
-const FLOORS = 8;
-const FLOOR_HEIGHT = 3.2;
-const SLAB = 0.3;
-const BASE = 0.9;
+const FLOORS = dimensions.floors;
+const FLOOR_HEIGHT = dimensions.floorHeight;
+const SLAB = dimensions.slab;
+const BASE = dimensions.base;
+const PLOT = dimensions.plot;
 const TOWER_HEIGHT = FLOORS * FLOOR_HEIGHT;
 
 const COLUMN_XS = [-6, -2, 2, 6];
 const COLUMN_ZS = [-4, 0, 4];
 
 /** Glazing planes of the tower, measured from its centre. */
-const HALF_WIDTH = 6.78;
-const HALF_DEPTH = 4.78;
-const SPANDREL = 0.5;
+const HALF_WIDTH = dimensions.halfWidth;
+const HALF_DEPTH = dimensions.halfDepth;
 
-const WING_X = 12.3;
-const WING_WIDTH = 10.8;
-const WING_DEPTH = 8.6;
-const WING_HEIGHT = 7.2;
-
-const ARCH_WIDTH = 2.1;
-const ARCH_SPRINGING = 2.15;
+const WING_X = dimensions.wingX;
+const WING_WIDTH = dimensions.wingWidth;
+const WING_DEPTH = dimensions.wingDepth;
+const WING_HEIGHT = dimensions.wingHeight;
 
 const [STRUCTURE, SERVICES, ENVELOPE, FINISH] = STAGE_STARTS;
 
@@ -116,16 +115,13 @@ const ramp = (progress: number, start: number, end: number) => clamp01((progress
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 const smooth = (t: number) => t * t * (3 - 2 * t);
 
-/** A box that grows from one end along an axis, settles from just above, or arrives from just outside. */
+/** A box that grows from one end along an axis, or settles from just above. */
 interface Piece {
   position: Vector3;
   size: Vector3;
   start: number;
   duration: number;
-  motion: 'grow-x' | 'grow-y' | 'grow-z' | 'drop' | 'fly';
-
-  /** For "fly": the direction the piece arrives from. */
-  normal?: Vector3;
+  motion: 'grow-x' | 'grow-y' | 'grow-z' | 'drop';
 }
 
 /** One InstancedMesh of unit boxes, each animated by its own Piece. */
@@ -172,8 +168,6 @@ function createPieces(pieces: Piece[], material: Material, shadows = true) {
         dummy.position.z = piece.position.z - piece.size.z / 2 + (piece.size.z * eased) / 2;
       } else if (piece.motion === 'drop') {
         dummy.position.y = piece.position.y + (1 - eased) * 1.2;
-      } else if (piece.motion === 'fly' && piece.normal) {
-        dummy.position.addScaledVector(piece.normal, (1 - eased) * 0.8);
       }
 
       dummy.updateMatrix();
@@ -207,50 +201,6 @@ function createStruts(struts: [Vector3, Vector3][], thickness: number, material:
   mesh.castShadow = true;
 
   return mesh;
-}
-
-/** A stone wall with arched openings, standing on the ground plane, with softened edges. */
-function createArcade(width: number, height: number, arches: number, material: Material) {
-  const shape = new Shape();
-
-  shape.moveTo(-width / 2, 0);
-  shape.lineTo(width / 2, 0);
-  shape.lineTo(width / 2, height);
-  shape.lineTo(-width / 2, height);
-  shape.closePath();
-
-  const spacing = width / arches;
-  const centres: number[] = [];
-
-  for (let index = 0; index < arches; index += 1) {
-    const centre = -width / 2 + spacing * (index + 0.5);
-    const opening = new Path();
-
-    opening.moveTo(centre - ARCH_WIDTH / 2, 0.02);
-    opening.lineTo(centre - ARCH_WIDTH / 2, ARCH_SPRINGING);
-    opening.absarc(centre, ARCH_SPRINGING, ARCH_WIDTH / 2, Math.PI, 0, true);
-    opening.lineTo(centre + ARCH_WIDTH / 2, 0.02);
-    opening.closePath();
-
-    shape.holes.push(opening);
-    centres.push(centre);
-  }
-
-  const geometry = new ExtrudeGeometry(shape, {
-    depth: 0.4,
-    bevelEnabled: true,
-    bevelSize: 0.025,
-    bevelThickness: 0.025,
-    bevelSegments: 2,
-    curveSegments: 24,
-  });
-
-  const mesh = new Mesh(geometry, material);
-
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-
-  return { mesh, centres };
 }
 
 /**
@@ -315,7 +265,24 @@ const SHOTS = [
   { at: 1, azimuth: 0.14, elevation: 0.2, target: [4, 14, 0], halfHeight: 20.5, halfWidth: 20.5 },
 ];
 
-export function createBuildScene(canvas: HTMLCanvasElement, options: BuildSceneOptions): BuildScene {
+export async function createBuildScene(canvas: HTMLCanvasElement, options: BuildSceneOptions): Promise<BuildScene> {
+  const accent = new MeshStandardMaterial({ color: options.colors.accent, roughness: 0.5, metalness: 0.15 });
+
+  // The model is read before anything touches the canvas, so a file that fails leaves nothing to clean up.
+  const model = await loadBuildModel(options.model, {
+    stages: { envelope: ENVELOPE, finish: FINISH },
+
+    material(material) {
+      // The canopy takes the site's accent colour, and glass leans on the sky for its reflections.
+      if (material.name === 'accent') return accent;
+      if (material.name === 'glass') material.envMapIntensity = 2.2;
+
+      return material;
+    },
+  });
+
+  options.signal?.throwIfAborted();
+
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
 
   renderer.toneMapping = NeutralToneMapping;
@@ -358,22 +325,8 @@ export function createBuildScene(canvas: HTMLCanvasElement, options: BuildSceneO
   const paving = new MeshStandardMaterial({ color: background.clone().lerp(new Color(0xffffff), 0.1), roughness: 0.92 });
   const kerb = new MeshStandardMaterial({ color: background.clone().lerp(new Color(0xffffff), 0.2), roughness: 0.9 });
   const concrete = new MeshStandardMaterial({ color: 0xcdc9c0, roughness: 0.94 });
-  const stone = new MeshStandardMaterial({ color: 0xe8e1d2, roughness: 0.8 });
   const plaster = new MeshStandardMaterial({ color: 0xf1eee7, roughness: 0.9 });
   const metal = new MeshStandardMaterial({ color: 0x30353c, roughness: 0.42, metalness: 0.7 });
-  const accent = new MeshStandardMaterial({ color: options.colors.accent, roughness: 0.5, metalness: 0.15 });
-  const glass = new MeshStandardMaterial({ color: 0x40546a, roughness: 0.08, metalness: 0, envMapIntensity: 2.2 });
-  const gold = new MeshStandardMaterial({ color: 0xd8ab3e, roughness: 0.32, metalness: 1 });
-
-  // Gilding is revealed by planes that sweep upward: one for the arch surrounds, one for the dome.
-  const archGilding = new Plane(new Vector3(0, -1, 0), 0);
-  const domeGilding = new Plane(new Vector3(0, -1, 0), 0);
-
-  const archGold = gold.clone();
-  const domeGold = gold.clone();
-
-  archGold.clippingPlanes = [archGilding];
-  domeGold.clippingPlanes = [domeGilding];
 
   /* Ground and site: an unlit shadow catcher, with a paved plot on a kerb. */
 
@@ -386,17 +339,21 @@ export function createBuildScene(canvas: HTMLCanvasElement, options: BuildSceneO
   kerbPlate.position.set(4, 0.07, 0.6);
   kerbPlate.receiveShadow = true;
 
-  const plot = new Mesh(new BoxGeometry(34, 0.22, 24), paving);
-  plot.position.set(4, 0.11, 0.6);
+  const plot = new Mesh(new BoxGeometry(34, PLOT, 24), paving);
+  plot.position.set(4, PLOT / 2, 0.6);
   plot.receiveShadow = true;
 
   scene.add(ground, kerbPlate, plot);
 
   /* Stage 1: structure. Foundations, then columns and slabs floor by floor, and the core. */
 
+  const footing = (HALF_WIDTH + dimensions.footing) * 2;
+  const footingDepth = (HALF_DEPTH + dimensions.footing) * 2;
+  const wingFooting = dimensions.wingFooting * 2;
+
   const structure: Piece[] = [
-    { position: new Vector3(0, 0.6, 0), size: new Vector3(14.2, 0.6, 10.2), start: STRUCTURE, duration: 0.04, motion: 'grow-y' },
-    { position: new Vector3(WING_X, 0.6, 0), size: new Vector3(WING_WIDTH + 0.5, 0.6, WING_DEPTH + 0.5), start: STRUCTURE + 0.1, duration: 0.04, motion: 'grow-y' },
+    { position: new Vector3(0, 0.6, 0), size: new Vector3(footing, 0.6, footingDepth), start: STRUCTURE, duration: 0.04, motion: 'grow-y' },
+    { position: new Vector3(WING_X, 0.6, 0), size: new Vector3(WING_WIDTH + wingFooting, 0.6, WING_DEPTH + wingFooting), start: STRUCTURE + 0.1, duration: 0.04, motion: 'grow-y' },
     { position: new Vector3(0, BASE + TOWER_HEIGHT / 2, -2.2), size: new Vector3(3.2, TOWER_HEIGHT, 2.6), start: CORE_START, duration: CORE_DURATION, motion: 'grow-y' },
   ];
 
@@ -432,10 +389,8 @@ export function createBuildScene(canvas: HTMLCanvasElement, options: BuildSceneO
     const start = STRUCTURE + 0.13 + level * 0.05;
     const columnHeight = WING_HEIGHT / 2 - SLAB;
 
-    // The front arcade has three arches, so its piers fall at a third of the width either side of centre, and at the ends.
-    const pier = WING_WIDTH / 6;
-
-    for (const x of [WING_X - 4.9, WING_X - pier, WING_X + pier, WING_X + 4.9]) {
+    // The wing's columns stand behind the solid wall between its arches, so none shows through an opening.
+    for (const x of [WING_X - 5, WING_X - 1.8, WING_X + 1.8, WING_X + 5]) {
       for (const z of [-3.6, 3.6]) {
         structure.push({
           position: new Vector3(x, BASE + (level * WING_HEIGHT) / 2 + columnHeight / 2, z),
@@ -489,211 +444,13 @@ export function createBuildScene(canvas: HTMLCanvasElement, options: BuildSceneO
     );
   }
 
-  /* Stage 3: envelope. Corner piers first, then each floor gets its spandrel, mullions and glass. */
-
-  const masonry: Piece[] = [];
-  const framing: Piece[] = [];
-  const glazing: Piece[] = [];
-
-  const paneHeight = FLOOR_HEIGHT - SPANDREL;
-
-  // Each face is described once: where it sits, which way it faces, and how many lights it has.
-  const faces = [
-    { normal: new Vector3(0, 0, 1), along: 'x' as const, plane: HALF_DEPTH, half: HALF_WIDTH, lights: 6 },
-    { normal: new Vector3(-1, 0, 0), along: 'z' as const, plane: -HALF_WIDTH, half: HALF_DEPTH, lights: 4 },
-    { normal: new Vector3(0, 0, -1), along: 'x' as const, plane: -HALF_DEPTH, half: HALF_WIDTH, lights: 6 },
-    { normal: new Vector3(1, 0, 0), along: 'z' as const, plane: HALF_WIDTH, half: HALF_DEPTH, lights: 4 },
-  ];
-
-  const onFace = (face: (typeof faces)[number], offset: number, y: number, depth = 0) =>
-    face.along === 'x'
-      ? new Vector3(offset, y, face.plane + face.normal.z * depth)
-      : new Vector3(face.plane + face.normal.x * depth, y, offset);
-
-  const sized = (face: (typeof faces)[number], length: number, height: number, thickness: number) =>
-    face.along === 'x' ? new Vector3(length, height, thickness) : new Vector3(thickness, height, length);
-
-  for (const x of [-HALF_WIDTH, HALF_WIDTH]) {
-    for (const z of [-HALF_DEPTH, HALF_DEPTH]) {
-      masonry.push({
-        position: new Vector3(x, BASE + TOWER_HEIGHT / 2, z),
-        size: new Vector3(0.42, TOWER_HEIGHT, 0.42),
-        start: ENVELOPE,
-        duration: 0.07,
-        motion: 'grow-y',
-      });
-    }
-  }
-
-  for (let floor = 0; floor < FLOORS; floor += 1) {
-    const level = BASE + floor * FLOOR_HEIGHT;
-    const start = ENVELOPE + 0.012 + floor * 0.022;
-
-    faces.forEach((face, faceIndex) => {
-      const light = (face.half * 2) / face.lights;
-      const stagger = faceIndex * 0.004;
-
-      framing.push({
-        position: onFace(face, 0, level + paneHeight + SPANDREL / 2, 0.02),
-        size: sized(face, face.half * 2 - 0.4, SPANDREL, 0.12),
-        start: start + stagger,
-        duration: 0.035,
-        motion: face.along === 'x' ? 'grow-x' : 'grow-z',
-      });
-
-      for (let index = 1; index < face.lights; index += 1) {
-        framing.push({
-          position: onFace(face, -face.half + index * light, level + paneHeight / 2, 0.05),
-          size: sized(face, 0.07, paneHeight, 0.18),
-          start: start + 0.008 + stagger,
-          duration: 0.03,
-          motion: 'grow-y',
-        });
-      }
-
-      for (let index = 0; index < face.lights; index += 1) {
-        glazing.push({
-          position: onFace(face, -face.half + (index + 0.5) * light, level + paneHeight / 2),
-          size: sized(face, light - 0.07, paneHeight, 0.06),
-          start: start + 0.014 + stagger + index * 0.003,
-          duration: 0.045,
-          motion: 'fly',
-          normal: face.normal,
-        });
-      }
-    });
-  }
-
-  // Parapet coping, the wing's cornice and plinth, and the entrance.
-  const roof = BASE + TOWER_HEIGHT;
-  const wingRoof = BASE + WING_HEIGHT;
-  const wingFront = WING_DEPTH / 2;
-  const wingRight = WING_X + WING_WIDTH / 2;
-
-  masonry.push(
-    { position: new Vector3(0, roof + 0.3, HALF_DEPTH), size: new Vector3(HALF_WIDTH * 2 + 0.5, 0.6, 0.4), start: ENVELOPE + 0.2, duration: 0.04, motion: 'grow-x' },
-    { position: new Vector3(0, roof + 0.3, -HALF_DEPTH), size: new Vector3(HALF_WIDTH * 2 + 0.5, 0.6, 0.4), start: ENVELOPE + 0.2, duration: 0.04, motion: 'grow-x' },
-    { position: new Vector3(HALF_WIDTH, roof + 0.3, 0), size: new Vector3(0.4, 0.6, HALF_DEPTH * 2 - 0.3), start: ENVELOPE + 0.21, duration: 0.04, motion: 'grow-z' },
-    { position: new Vector3(-HALF_WIDTH, roof + 0.3, 0), size: new Vector3(0.4, 0.6, HALF_DEPTH * 2 - 0.3), start: ENVELOPE + 0.21, duration: 0.04, motion: 'grow-z' },
-
-    { position: new Vector3(WING_X, wingRoof + 0.2, wingFront + 0.1), size: new Vector3(WING_WIDTH + 0.5, 0.4, 0.5), start: ENVELOPE + 0.2, duration: 0.04, motion: 'grow-x' },
-    { position: new Vector3(wingRight + 0.1, wingRoof + 0.2, 0), size: new Vector3(0.5, 0.4, WING_DEPTH + 0.2), start: ENVELOPE + 0.21, duration: 0.04, motion: 'grow-z' },
-    { position: new Vector3(WING_X, wingRoof + 0.2, -wingFront - 0.1), size: new Vector3(WING_WIDTH + 0.5, 0.4, 0.5), start: ENVELOPE + 0.22, duration: 0.04, motion: 'grow-x' },
-
-    { position: new Vector3(0, 0.36, HALF_DEPTH + 1.9), size: new Vector3(6.4, 0.28, 3.8), start: ENVELOPE + 0.18, duration: 0.04, motion: 'grow-y' },
-    { position: new Vector3(0, 0.62, HALF_DEPTH + 1.3), size: new Vector3(5.6, 0.26, 2.6), start: ENVELOPE + 0.2, duration: 0.04, motion: 'grow-y' },
-  );
-
-  // Entrance portal: each part rests on the one below it.
-  const postHeight = 3;
-  const beamHeight = 0.22;
-  const canopyHeight = 0.16;
-
-  const postTop = BASE + postHeight;
-  const beamTop = postTop + beamHeight;
-
-  framing.push(
-    { position: new Vector3(-2.3, BASE + postHeight / 2, HALF_DEPTH + 0.2), size: new Vector3(0.22, postHeight, 0.5), start: ENVELOPE + 0.06, duration: 0.04, motion: 'grow-y' },
-    { position: new Vector3(2.3, BASE + postHeight / 2, HALF_DEPTH + 0.2), size: new Vector3(0.22, postHeight, 0.5), start: ENVELOPE + 0.06, duration: 0.04, motion: 'grow-y' },
-    { position: new Vector3(0, postTop + beamHeight / 2, HALF_DEPTH + 0.2), size: new Vector3(4.82, beamHeight, 0.5), start: ENVELOPE + 0.08, duration: 0.04, motion: 'grow-x' },
-  );
-
-  const canopy: Piece[] = [
-    { position: new Vector3(0, beamTop + canopyHeight / 2, HALF_DEPTH + 1.55), size: new Vector3(5.6, canopyHeight, 3.2), start: ENVELOPE + 0.22, duration: 0.04, motion: 'drop' },
-  ];
-
-  /* Stage 4: the finish. Gold coping lines on the tower and the wing. */
-
-  const gilding: Piece[] = [
-    { position: new Vector3(WING_X, wingRoof + 0.46, wingFront + 0.1), size: new Vector3(WING_WIDTH + 0.6, 0.12, 0.56), start: FINISH + 0.08, duration: 0.05, motion: 'grow-x' },
-    { position: new Vector3(wingRight + 0.1, wingRoof + 0.46, 0), size: new Vector3(0.56, 0.12, WING_DEPTH + 0.3), start: FINISH + 0.1, duration: 0.05, motion: 'grow-z' },
-
-    { position: new Vector3(0, roof + 0.66, HALF_DEPTH), size: new Vector3(HALF_WIDTH * 2 + 0.6, 0.12, 0.46), start: FINISH + 0.12, duration: 0.05, motion: 'grow-x' },
-    { position: new Vector3(HALF_WIDTH, roof + 0.66, 0), size: new Vector3(0.46, 0.12, HALF_DEPTH * 2 - 0.3), start: FINISH + 0.13, duration: 0.05, motion: 'grow-z' },
-    { position: new Vector3(0, roof + 0.66, -HALF_DEPTH), size: new Vector3(HALF_WIDTH * 2 + 0.6, 0.12, 0.46), start: FINISH + 0.14, duration: 0.05, motion: 'grow-x' },
-    { position: new Vector3(-HALF_WIDTH, roof + 0.66, 0), size: new Vector3(0.46, 0.12, HALF_DEPTH * 2 - 0.3), start: FINISH + 0.15, duration: 0.05, motion: 'grow-z' },
-  ];
-
-  const sets = [
-    createPieces(structure, concrete),
-    createPieces(services, accent),
-    createPieces(partitions, plaster),
-    createPieces(masonry, stone),
-    createPieces(framing, metal),
-    createPieces(glazing, glass),
-    createPieces(canopy, accent),
-    createPieces(gilding, gold),
-  ];
+  const sets = [createPieces(structure, concrete), createPieces(services, accent), createPieces(partitions, plaster)];
 
   scene.add(...sets.map((set) => set.mesh));
 
-  /* The wing: arcaded stone walls, a plaster dome, and the gilding that goes over it. */
+  /* Stages 3 and 4: the envelope and the finish, from the authored model. */
 
-  const front = createArcade(WING_WIDTH, WING_HEIGHT, 3, stone);
-  front.mesh.position.set(WING_X, BASE, wingFront - 0.2);
-
-  const side = createArcade(WING_DEPTH, WING_HEIGHT, 2, stone);
-  side.mesh.position.set(wingRight - 0.2, BASE, 0);
-  side.mesh.rotation.y = Math.PI / 2;
-
-  const back = new Mesh(new BoxGeometry(WING_WIDTH, WING_HEIGHT, 0.4), stone);
-  back.geometry.translate(0, WING_HEIGHT / 2, 0);
-  back.position.set(WING_X, BASE, -wingFront);
-  back.castShadow = true;
-  back.receiveShadow = true;
-
-  const walls = [front.mesh, side.mesh, back];
-
-  const dome = new Group();
-  const domeRadius = 2.5;
-
-  dome.position.set(WING_X, wingRoof, 0);
-
-  const drum = new Mesh(new CylinderGeometry(2.75, 2.75, 0.8, 48), stone);
-  drum.position.y = 0.4;
-
-  const shell = new Mesh(new SphereGeometry(domeRadius, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2), plaster);
-  shell.position.y = 0.8;
-
-  const finial = new Mesh(new ConeGeometry(0.13, 1.4, 16), plaster);
-  finial.position.y = 0.8 + domeRadius + 0.55;
-
-  // The gold skin sits a hair outside the plaster and is uncovered from the base upward.
-  const leaf = new Mesh(new SphereGeometry(domeRadius + 0.02, 64, 32, 0, Math.PI * 2, 0, Math.PI / 2), domeGold);
-  leaf.position.copy(shell.position);
-
-  const leafFinial = new Mesh(new ConeGeometry(0.15, 1.44, 16), domeGold);
-  leafFinial.position.copy(finial.position);
-
-  for (const part of [drum, shell, finial, leaf, leafFinial]) {
-    part.castShadow = true;
-    part.receiveShadow = true;
-    dome.add(part);
-  }
-
-  // Gilded surrounds over each arch.
-  const surround = new TorusGeometry(ARCH_WIDTH / 2 + 0.16, 0.075, 10, 32, Math.PI);
-
-  const surrounds = [
-    ...front.centres.map((centre) => {
-      const ring = new Mesh(surround, archGold);
-
-      ring.position.set(WING_X + centre, BASE + ARCH_SPRINGING, wingFront + 0.24);
-
-      return ring;
-    }),
-
-    ...side.centres.map((centre) => {
-      const ring = new Mesh(surround, archGold);
-
-      ring.position.set(wingRight + 0.24, BASE + ARCH_SPRINGING, -centre);
-      ring.rotation.y = Math.PI / 2;
-
-      return ring;
-    }),
-  ];
-
-  scene.add(...walls, dome, ...surrounds);
+  scene.add(model.object);
 
   /* Tower crane: a lattice mast and jib. It builds the frame, then is struck as the envelope closes. */
 
@@ -701,7 +458,7 @@ export function createBuildScene(canvas: HTMLCanvasElement, options: BuildSceneO
   const craneHeight = 31;
   const mastHalf = 0.6;
 
-  crane.position.set(-11.5, 0.22, -7.5);
+  crane.position.set(-11.5, PLOT, -7.5);
 
   const mastStruts: [Vector3, Vector3][] = [];
   const corners = [
@@ -839,31 +596,7 @@ export function createBuildScene(canvas: HTMLCanvasElement, options: BuildSceneO
 
     for (const set of sets) set.update(built);
 
-    // The wing's walls and its plaster dome rise with the envelope.
-    const wallsUp = easeOut(ramp(built, ENVELOPE + 0.06, ENVELOPE + 0.18));
-
-    for (const wall of walls) {
-      wall.visible = wallsUp > 0;
-      wall.scale.y = Math.max(wallsUp, 0.001);
-    }
-
-    const domeUp = smooth(ramp(built, ENVELOPE + 0.16, ENVELOPE + 0.24));
-
-    dome.visible = domeUp > 0;
-    dome.scale.setScalar(Math.max(domeUp, 0.001));
-
-    // Gilding: the arch surrounds first, then the dome from its base to its finial.
-    const arches = smooth(ramp(built, FINISH + 0.01, FINISH + 0.07));
-    const domeLeaf = smooth(ramp(built, FINISH + 0.05, FINISH + 0.15));
-
-    for (const ring of surrounds) ring.visible = arches > 0;
-
-    archGilding.constant = BASE + ARCH_SPRINGING + arches * (ARCH_WIDTH / 2 + 0.3);
-
-    leaf.visible = domeLeaf > 0;
-    leafFinial.visible = domeLeaf > 0;
-
-    domeGilding.constant = dome.position.y + 0.8 + domeLeaf * (domeRadius + 1.4);
+    model.update(built);
 
     // Crane: the mast climbs first. Once the frame is done it raises its hook, swings clear of
     // the building and parks, and only then is it lowered.

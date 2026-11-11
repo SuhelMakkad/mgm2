@@ -12,6 +12,7 @@ Multi-page marketing site built with [Astro](https://astro.build). It ships as s
 | `bun run preview` | Serve the production build locally |
 | `bun run images` | Generate any missing photographs with the Codex CLI |
 | `bun run assets` | Regenerate the favicon and app icons in `public/` |
+| `bun run model` | Rebuild the 3D model for the build story with Blender |
 
 ## Pages
 
@@ -54,12 +55,20 @@ The Services page opens with a scroll-driven 3D section: a building assembles in
 
 - **Use it elsewhere:** add `<BuildStory />` from `src/components/build-story.astro`, with a `title` to suit the page. Give each instance its own `id` if a page has more than one.
 - **Stage copy, timing and links:** `src/data/build-stages.ts` is the single source for the captions, the scene's timing and the service group each stage links to.
-- **The scene:** `src/scripts/build-scene.ts` builds everything from simple shapes with [three.js](https://threejs.org), so there is no model file. Nothing moves on its own: a frame is drawn only when the scroll position, pointer or size changes.
-- **Cost:** three.js is about 146 KB gzipped and is fetched only when the section is within two thirds of a screen and the page has finished loading. Pages without the section never load it.
-- **When it stays still:** with reduced motion, a data-saver connection, no WebGL2, no script, or a window too short for the pinned layout, the section is an ordinary block with a still picture (`src/assets/images/build-poster.jpg`) beside the four stages. It also returns to that version if the scene fails to start, and visitors can choose it with "Show all stages as a list".
+- **The scene:** `src/scripts/build-scene.ts` draws it with [three.js](https://threejs.org). The concrete frame, the services and the crane are simple shapes made in code. The envelope and the finish (curtain wall, stonework, arcade, dome and gilding) are an authored model, played by `src/scripts/build-model.ts`. Nothing moves on its own: a frame is drawn only when the scroll position, pointer or size changes.
+- **Cost:** the scene's code is about 165 KB gzipped and the model about 63 KB (207 KB on disk). Both are fetched side by side, only when the section is within two thirds of a screen and the page has finished loading. Pages without the section never load them.
+- **When it stays still:** with reduced motion, a data-saver connection, no WebGL2 or WebAssembly, no script, or a window too short for the pinned layout, the section is an ordinary block with a still picture (`src/assets/images/build-poster.jpg`) beside the four stages. It also returns to that version if the scene fails to start, and visitors can choose it with "Show all stages as a list".
 - **Accessibility:** stage titles are buttons that jump to their stage, a skip link leads past the section, and every stage stays readable to assistive technology.
 - **Colour:** the crane, services and canopy use the site's accent colour, read from the stylesheet.
-- **Next step for realism:** the model is procedural and stylised. A Blender-authored glTF for the envelope and finish details, compressed with Meshopt, is the route to a more architectural look.
+
+### The model
+
+`src/assets/models/build-envelope.glb` is authored in [Blender](https://www.blender.org) by a script, `scripts/build-model.py`, so every part is exact and the file can be rebuilt at any time. It is committed, so building the site does not need Blender.
+
+- **Rebuild it:** `bun run model`. This runs Blender in the background (version 5; made with 5.2, on the `PATH`, in `/Applications` on a Mac, or named by the `BLENDER` environment variable), then `scripts/generate-build-model.mjs` turns repeated parts into GPU instances and compresses the file with Meshopt. Add `--blend scene.blend` to also save the scene and open it in Blender.
+- **Change it:** edit `scripts/build-model.py`. Each object carries custom properties that the scene plays back: `stage` (`envelope` or `finish`), `motion` (`grow-x`, `grow-y`, `drop`, `fly` or `reveal`), and `at` and `span`, which time it within its stage. Objects that share a mesh become one draw call. Gold leaf reuses the geometry of the plaster it covers, so it adds no vertex or index data to the file.
+- **Shared dimensions:** the model and the procedural frame are both built to `src/data/build-dimensions.json`, so the facade closes around the structure. Change a dimension there, then rebuild the model.
+- **After a change:** re-capture the still, `src/assets/images/build-poster.jpg`, from the finished scene so the fallback matches.
 
 ## Photographs
 
