@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 import type { CollectionEntry } from 'astro:content';
 
 import Icon from './icon.astro';
@@ -27,7 +29,7 @@ const picture = image ?? findImage(sector?.image ?? 'hero-home');
 ---
 
 <article class="project-card" data-status={status} data-sector={project.data.sector}>
-  <a class="project-card__link" href={`/projects/${project.id}/`}>
+  <a class="project-card__link" href={withBase(`/projects/${project.id}/`)}>
     <div class="project-card__media">
       <Media src={picture} alt={imageAlt ?? title} ratio={ratio} sizes={sizes} eager={eager} />
 

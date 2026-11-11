@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../lib/paths';
+
 import Base from '../../layouts/base.astro';
 import Arrow from '../../components/arrow.astro';
 import CtaBand from '../../components/cta-band.astro';
@@ -53,7 +55,7 @@ const message = [
   title="About Us"
   description="Building in Dubai since 1979. Our mission and vision, a message from the Managing Director, our history and the team behind Al Madar MGM Construction."
   breadcrumbs={crumbs}
-  schema={[{ '@type': 'AboutPage', name: `About ${site.name}`, url: new URL('/about/', Astro.site).href }]}
+  schema={[{ '@type': 'AboutPage', name: `About ${site.name}`, url: new URL(withBase('/about/'), Astro.site).href }]}
 >
   <PageHero label="About us" title="Built on trust since 1979." backdrop="about-site" position="center 30%" crumbs={crumbs}>
     <ul class="anchors" role="list">
@@ -143,7 +145,7 @@ const message = [
           }
         </ol>
 
-        <a class="btn" href="/about/history/" data-reveal>
+        <a class="btn" href={withBase('/about/history/')} data-reveal>
           Read our history
           <Arrow />
         </a>
@@ -156,7 +158,7 @@ const message = [
       <div class="team-head">
         <SectionHead label="The team" title="Our greatest strength lies in our people." />
 
-        <a class="arrow-link" href="/about/team/" data-reveal>
+        <a class="arrow-link" href={withBase('/about/team/')} data-reveal>
           Meet the team
           <Arrow />
         </a>
@@ -166,7 +168,7 @@ const message = [
         {
           team.map((member, index) => (
             <li data-reveal style={`--i:${index}`}>
-              <a class="team-row__link" href={`/about/team/${member.id}/`}>
+              <a class="team-row__link" href={withBase(`/about/team/${member.id}/`)}>
                 <Portrait name={member.data.name} photo={member.data.photo} sizes="(min-width: 64rem) 18vw, 45vw" />
 
                 <span class="team-row__name">{member.data.name}</span>

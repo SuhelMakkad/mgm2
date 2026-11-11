@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 import Base from '../layouts/base.astro';
 import Arrow from '../components/arrow.astro';
 import Icon from '../components/icon.astro';
@@ -33,7 +35,7 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
   title="Contact Us"
   description="Contact Al Madar MGM Construction LLC in Dubai for project enquiries, subcontractor and supplier registration, and careers."
   breadcrumbs={crumbs}
-  schema={[{ '@type': 'ContactPage', name: `Contact ${site.name}`, url: new URL('/contact/', Astro.site).href }]}
+  schema={[{ '@type': 'ContactPage', name: `Contact ${site.name}`, url: new URL(withBase('/contact/'), Astro.site).href }]}
 >
   <PageHero label="Contact us" title="Tell us what you are building." backdrop="contact-office" position="center 60%" crumbs={crumbs} />
 

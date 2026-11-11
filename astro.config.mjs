@@ -4,9 +4,9 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { defineConfig, fontProviders } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-// TODO: set SITE_URL (or replace the fallback) with the production domain before launch.
-// It drives canonical URLs, Open Graph tags, robots.txt and the sitemap.
-const SITE_URL = process.env.SITE_URL ?? 'https://www.example.com';
+// Override these when deploying to a custom domain or a different subdirectory.
+const SITE_URL = process.env.SITE_URL ?? 'https://suhelmakkad.github.io';
+const BASE_PATH = process.env.BASE_PATH ?? '/mgm2';
 
 // Sample projects are marked noindex on the page, so keep them out of the sitemap too.
 const projectsDir = new URL('./src/content/projects/', import.meta.url);
@@ -19,6 +19,7 @@ const samplePaths = readdirSync(projectsDir)
 // https://astro.build/config
 export default defineConfig({
   site: SITE_URL,
+  base: BASE_PATH,
   trailingSlash: 'always',
 
   build: {

@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 import Base from '../layouts/base.astro';
 import Arrow from '../components/arrow.astro';
 import PageHero from '../components/page-hero.astro';
@@ -7,13 +9,13 @@ import PageHero from '../components/page-hero.astro';
 <Base title="Page Not Found" description="The page you were looking for could not be found." noindex>
   <PageHero label="Error 404" title="This page is not on the drawings." lede="The page may have moved, or the address may be mistyped." backdrop="cta-structure">
     <div class="actions">
-      <a class="btn" href="/">
+      <a class="btn" href={withBase('/')}>
         Back to home
         <Arrow />
       </a>
 
-      <a class="btn btn--ghost" href="/projects/">View projects</a>
-      <a class="btn btn--ghost" href="/contact/">Contact us</a>
+      <a class="btn btn--ghost" href={withBase('/projects/')}>View projects</a>
+      <a class="btn btn--ghost" href={withBase('/contact/')}>Contact us</a>
     </div>
   </PageHero>
 </Base>

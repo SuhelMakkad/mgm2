@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 import Base from '../layouts/base.astro';
 import CtaBand from '../components/cta-band.astro';
 import Icon from '../components/icon.astro';
@@ -48,7 +50,7 @@ const crumbs = [{ label: 'Sectors', href: '/sectors/' }];
                 <p class="muted">{sector.description}</p>
 
                 {projectCount(sector.id) > 0 && (
-                  <a class="sector__link" href={`/projects/?sector=${sector.id}`}>
+                  <a class="sector__link" href={withBase(`/projects/?sector=${sector.id}`)}>
                     View projects
                     <Icon name="arrow-right-bold" />
                   </a>

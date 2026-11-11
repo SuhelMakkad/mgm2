@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 import Brand from './brand.astro';
 import Arrow from './arrow.astro';
 import Icon from './icon.astro';
@@ -15,7 +17,7 @@ const mottoLines = site.motto.split('. ').map((line) => (line.endsWith('.') ? li
         {mottoLines.map((line) => <span>{line}</span>)}
       </p>
 
-      <a class="btn" href="/contact/">
+      <a class="btn" href={withBase('/contact/')}>
         Start a conversation
         <Arrow />
       </a>
@@ -55,7 +57,7 @@ const mottoLines = site.motto.split('. ').map((line) => (line.endsWith('.') ? li
             <ul role="list">
               {column.links.map((link) => (
                 <li>
-                  <a href={link.href}>{link.label}</a>
+                  <a href={withBase(link.href)}>{link.label}</a>
                 </li>
               ))}
             </ul>

@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 /**
  * A scroll-driven 3D section: a building assembles in four stages as the page scrolls.
  *
@@ -83,7 +85,7 @@ const groupTitle = (groupId: string) => serviceGroups.find((group) => group.id =
                           {stage.services.map((service) => <li>{service}</li>)}
                         </ul>
 
-                        <a class="step__link" href={`/services/#${stage.group}`} data-step-link>
+                        <a class="step__link" href={withBase(`/services/#${stage.group}`)} data-step-link>
                           {groupTitle(stage.group)} services
                           <Icon name="arrow-right-bold" />
                         </a>

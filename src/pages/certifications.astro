@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 import Base from '../layouts/base.astro';
 import Arrow from '../components/arrow.astro';
 import CtaBand from '../components/cta-band.astro';
@@ -50,12 +52,12 @@ const crumbs = [{ label: 'Certifications', href: '/certifications/' }];
               )}
 
               {certification.document ? (
-                <a class="arrow-link" href={certification.document}>
+                <a class="arrow-link" href={withBase(certification.document)}>
                   View certificate
                   <Arrow />
                 </a>
               ) : (
-                <a class="arrow-link" href="/contact/">
+                <a class="arrow-link" href={withBase('/contact/')}>
                   Request a copy
                   <Arrow />
                 </a>

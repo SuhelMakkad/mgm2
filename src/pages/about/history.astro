@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../lib/paths';
+
 import Base from '../../layouts/base.astro';
 import Arrow from '../../components/arrow.astro';
 import CtaBand from '../../components/cta-band.astro';
@@ -67,7 +69,7 @@ const crumbs = [
         Our journey is a testament to evolution, perseverance, and the courage to move forward. And our story continues.
       </p>
 
-      <a class="btn" href="/about/team/" data-reveal style="--i:2">
+      <a class="btn" href={withBase('/about/team/')} data-reveal style="--i:2">
         Meet the team behind {site.shortName}
         <Arrow />
       </a>

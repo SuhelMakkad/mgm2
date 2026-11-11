@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 import { Font } from 'astro:assets';
 
 import '../styles/global.css';
@@ -32,7 +34,7 @@ interface Props {
 const { title, description = site.description, fullTitle = false, ogType = 'website', noindex = false, breadcrumbs = [], schema = [] } = Astro.props;
 
 const origin = Astro.site ?? new URL(Astro.url.origin);
-const absolute = (path: string) => new URL(path, origin).href;
+const absolute = (path: string) => new URL(withBase(path), origin).href;
 
 /** Search results cut descriptions at roughly 160 characters, so end on a whole word before that. */
 const clip = (text: string, limit = 158) => {
@@ -45,7 +47,7 @@ const clip = (text: string, limit = 158) => {
 
 const pageTitle = fullTitle ? title : `${title} | ${site.shortName} Construction`;
 const metaDescription = clip(description);
-const canonical = absolute(Astro.url.pathname);
+const canonical = new URL(Astro.url.pathname, origin).href;
 const ogImage = absolute('/og.jpg');
 
 const organizationId = absolute('/#organization');
@@ -110,10 +112,10 @@ const jsonLd = {
 
     <Font cssVariable="--font-archivo" preload />
 
-    <link rel="icon" href="/favicon.ico" sizes="32x32" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="icon" href={withBase('/favicon.ico')} sizes="32x32" />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
+    <link rel="manifest" href={withBase('/site.webmanifest')} />
     <meta name="theme-color" content="#111316" />
 
     <meta property="og:site_name" content={site.name} />
@@ -128,7 +130,7 @@ const jsonLd = {
     <meta property="og:locale" content="en_AE" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
     <meta name="generator" content={Astro.generator} />
 
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

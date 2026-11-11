@@ -1,7 +1,9 @@
 import type { APIRoute } from 'astro';
 
+import { withBase } from '../lib/paths';
+
 export const GET: APIRoute = ({ site }) => {
-  const sitemap = new URL('sitemap-index.xml', site);
+  const sitemap = new URL(withBase('/sitemap-index.xml'), site);
 
   const body = ['User-agent: *', 'Allow: /', '', `Sitemap: ${sitemap.href}`, ''].join('\n');
 

@@ -1,12 +1,14 @@
 ---
+import { withBase } from '../lib/paths';
+
 import Brand from './brand.astro';
 import Arrow from './arrow.astro';
 import { mainNav } from '../data/site';
 
 const path = Astro.url.pathname;
 
-const isActive = (href: string) => path.startsWith(href.split('#')[0]);
-const isPage = (href: string) => path === href;
+const isActive = (href: string) => path.startsWith(withBase(href.split('#')[0]));
+const isPage = (href: string) => path === withBase(href);
 ---
 
 <header class="site-header theme-dark" data-header>
@@ -20,7 +22,7 @@ const isPage = (href: string) => path === href;
             <li class="nav__item">
               <a
                 class:list={['nav__link', { 'is-active': isActive(item.href) }]}
-                href={item.href}
+                href={withBase(item.href)}
                 aria-current={isPage(item.href) ? 'page' : undefined}
               >
                 {item.label}
@@ -36,7 +38,7 @@ const isPage = (href: string) => path === href;
                 <ul class="nav__sub" role="list">
                   {item.children.map((child) => (
                     <li>
-                      <a href={child.href}>{child.label}</a>
+                      <a href={withBase(child.href)}>{child.label}</a>
                     </li>
                   ))}
                 </ul>
@@ -47,7 +49,7 @@ const isPage = (href: string) => path === href;
       </ul>
     </nav>
 
-    <a class="btn site-header__cta" href="/contact/">Contact us</a>
+    <a class="btn site-header__cta" href={withBase('/contact/')}>Contact us</a>
 
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
       <span class="visually-hidden">Menu</span>
@@ -65,7 +67,7 @@ const isPage = (href: string) => path === href;
         {
           mainNav.map((item, index) => (
             <li style={`--i:${index}`}>
-              <a class="mobile-menu__link" href={item.href} aria-current={isPage(item.href) ? 'page' : undefined}>
+              <a class="mobile-menu__link" href={withBase(item.href)} aria-current={isPage(item.href) ? 'page' : undefined}>
                 {item.label}
               </a>
 
@@ -73,7 +75,7 @@ const isPage = (href: string) => path === href;
                 <ul class="mobile-menu__sub" role="list">
                   {item.children.map((child) => (
                     <li>
-                      <a href={child.href}>{child.label}</a>
+                      <a href={withBase(child.href)}>{child.label}</a>
                     </li>
                   ))}
                 </ul>
@@ -83,7 +85,7 @@ const isPage = (href: string) => path === href;
         }
       </ul>
 
-      <a class="btn mobile-menu__cta" href="/contact/" style={`--i:${mainNav.length}`}>
+      <a class="btn mobile-menu__cta" href={withBase('/contact/')} style={`--i:${mainNav.length}`}>
         Contact us
         <Arrow />
       </a>

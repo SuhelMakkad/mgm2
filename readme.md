@@ -72,11 +72,17 @@ The current set is **AI-generated illustrative imagery**, made with `scripts/gen
 - **Team portraits:** these are monograms on purpose. Portraits of real, named people should be photographs, not generated. Put the file in `src/assets/team/` and add `photo: ../../assets/team/<file>.jpg` to the member's frontmatter.
 - **Project photos:** set `image: ../../assets/images/<file>.jpg` and `imageAlt` in the project's frontmatter. Without one, a project shows the picture of its sector.
 
+## GitHub Pages
+
+The site is deployed at [suhelmakkad.github.io/mgm2](https://suhelmakkad.github.io/mgm2/) from the public [SuhelMakkad/mgm2](https://github.com/SuhelMakkad/mgm2) repository. Every push to `main` runs `.github/workflows/deploy.yml`, which builds the site with Bun and deploys `dist/` to GitHub Pages.
+
+`astro.config.mjs` defaults to `site: 'https://suhelmakkad.github.io'` and `base: '/mgm2'`. Internal links use `withBase()` from `src/lib/paths.ts` so navigation, public assets and structured data work under that subdirectory. For a custom domain at the root, set `SITE_URL` to the domain and `BASE_PATH=/` when building, and configure that domain in GitHub Pages.
+
 ## Before launch
 
 These were not part of the brief and are placeholders. Search the code for `TODO` to find each one.
 
-- **Domain:** set `SITE_URL` (or the fallback in `astro.config.mjs`). It drives canonical URLs, Open Graph tags, `robots.txt` and the sitemap.
+- **Custom domain:** if needed, override `SITE_URL` and `BASE_PATH` as described above. They drive canonical URLs, Open Graph tags, `robots.txt` and the sitemap.
 - **Contact details:** email, careers email, phone, office hours, address and map link in `src/data/site.ts`.
 - **Contact form:** set `PUBLIC_FORM_ENDPOINT` to a form backend that accepts a `POST`. Until it is set, the form opens a pre-filled email instead of submitting in place. Sending the registration link to subcontractors and suppliers happens in that backend or by hand.
 - **Projects:** the eight entries in `src/content/projects/` are samples with illustrative pictures. They carry a visible "Sample" tag, are marked `noindex` and are left out of the sitemap.

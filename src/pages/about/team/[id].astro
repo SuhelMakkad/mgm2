@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../../lib/paths';
+
 import { render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
@@ -49,8 +51,8 @@ const person = {
   name,
   jobTitle: role,
   description: summary,
-  url: new URL(path, Astro.site).href,
-  worksFor: { '@id': new URL('/#organization', Astro.site).href },
+  url: new URL(withBase(path), Astro.site).href,
+  worksFor: { '@id': new URL(withBase('/#organization'), Astro.site).href },
 };
 ---
 
@@ -104,13 +106,13 @@ const person = {
     <div class="container pager__inner">
       {
         previous ? (
-          <a class="pager__link" href={`/about/team/${previous.id}/`} rel="prev">
+          <a class="pager__link" href={withBase(`/about/team/${previous.id}/`)} rel="prev">
             <span class="pager__hint">Previous</span>
             <strong class="h3">{previous.data.name}</strong>
             <span class="muted">{previous.data.role}</span>
           </a>
         ) : (
-          <a class="pager__link" href="/about/team/">
+          <a class="pager__link" href={withBase('/about/team/')}>
             <span class="pager__hint">Back to</span>
             <strong class="h3">The team</strong>
             <span class="muted">All profiles</span>
@@ -120,7 +122,7 @@ const person = {
 
       {
         next ? (
-          <a class="pager__link pager__link--next" href={`/about/team/${next.id}/`} rel="next">
+          <a class="pager__link pager__link--next" href={withBase(`/about/team/${next.id}/`)} rel="next">
             <span class="pager__hint">
               Next
               <Arrow />
@@ -130,7 +132,7 @@ const person = {
             <span class="muted">{next.data.role}</span>
           </a>
         ) : (
-          <a class="pager__link pager__link--next" href="/about/team/">
+          <a class="pager__link pager__link--next" href={withBase('/about/team/')}>
             <span class="pager__hint">
               Back to
               <Arrow />

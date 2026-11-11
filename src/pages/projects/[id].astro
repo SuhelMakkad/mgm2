@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../lib/paths';
+
 import { render } from 'astro:content';
 import type { CollectionEntry } from 'astro:content';
 
@@ -67,11 +69,11 @@ const facts = [
       <nav class="crumbs rise" aria-label="Breadcrumb">
         <ol role="list">
           <li>
-            <a href="/">Home</a>
+            <a href={withBase('/')}>Home</a>
           </li>
 
           <li>
-            <a href="/projects/">Projects</a>
+            <a href={withBase('/projects/')}>Projects</a>
           </li>
 
           <li>
@@ -145,7 +147,7 @@ const facts = [
   </section>
 
   <nav class="next theme-dark" aria-label="Next project">
-    <a class="next__link" href={`/projects/${next.id}/`} rel="next">
+    <a class="next__link" href={withBase(`/projects/${next.id}/`)} rel="next">
       <Media src={nextPicture} alt="" ratio="fill" sizes="100vw" />
 
       <span class="container next__inner">

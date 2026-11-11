@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../lib/paths';
+
 import Base from '../../layouts/base.astro';
 import CtaBand from '../../components/cta-band.astro';
 import Icon from '../../components/icon.astro';
@@ -115,7 +117,7 @@ const crumbs = [{ label: 'Projects', href: '/projects/' }];
               projects.map((project) => (
                 <tr data-item data-status={project.data.status} data-sector={project.data.sector}>
                   <th scope="row">
-                    <a href={`/projects/${project.id}/`}>{project.data.title}</a>
+                    <a href={withBase(`/projects/${project.id}/`)}>{project.data.title}</a>
                     {project.data.sample && <span class="tag tag--sample">Sample</span>}
                   </th>
 

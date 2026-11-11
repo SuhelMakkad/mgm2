@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 import Media from './media.astro';
 import { image } from '../data/images';
 import type { Crumb } from '../layouts/base.astro';
@@ -30,11 +32,11 @@ const { label, title, lede, crumbs = [], backdrop = 'cta-structure', position = 
         <nav class="crumbs rise" aria-label="Breadcrumb">
           <ol role="list">
             <li>
-              <a href="/">Home</a>
+              <a href={withBase('/')}>Home</a>
             </li>
 
             {crumbs.map((crumb, index) => (
-              <li>{index === crumbs.length - 1 ? <span aria-current="page">{crumb.label}</span> : <a href={crumb.href}>{crumb.label}</a>}</li>
+              <li>{index === crumbs.length - 1 ? <span aria-current="page">{crumb.label}</span> : <a href={withBase(crumb.href)}>{crumb.label}</a>}</li>
             ))}
           </ol>
         </nav>

@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../lib/paths';
+
 import Arrow from './arrow.astro';
 import Icon from './icon.astro';
 import Media from './media.astro';
@@ -34,7 +36,7 @@ const actions = [
       {
         actions.map((action, index) => (
           <li data-reveal style={`--i:${index + 1}`}>
-            <a class="cta-band__action" href={action.href}>
+            <a class="cta-band__action" href={withBase(action.href)}>
               <Icon name={action.icon} />
 
               <span>

@@ -1,4 +1,6 @@
 ---
+import { withBase } from '../../../lib/paths';
+
 import Base from '../../../layouts/base.astro';
 import Arrow from '../../../components/arrow.astro';
 import CtaBand from '../../../components/cta-band.astro';
@@ -27,7 +29,7 @@ const crumbs = [
   <section class="section">
     <div class="container">
       <article class="lead" data-reveal>
-        <a class="lead__portrait" href={`/about/team/${director.id}/`} tabindex="-1" aria-hidden="true">
+        <a class="lead__portrait" href={withBase(`/about/team/${director.id}/`)} tabindex="-1" aria-hidden="true">
           <Portrait name={director.data.name} photo={director.data.photo} eager sizes="(min-width: 60rem) 36vw, 100vw" />
         </a>
 
@@ -45,7 +47,7 @@ const crumbs = [
             )
           }
 
-          <a class="btn" href={`/about/team/${director.id}/`}>
+          <a class="btn" href={withBase(`/about/team/${director.id}/`)}>
             Read {director.data.name.split(' ')[0]}'s profile
             <Arrow />
           </a>
@@ -56,7 +58,7 @@ const crumbs = [
         {
           managers.map((member, index) => (
             <li data-reveal style={`--i:${index}`}>
-              <a class="member" href={`/about/team/${member.id}/`}>
+              <a class="member" href={withBase(`/about/team/${member.id}/`)}>
                 <Portrait name={member.data.name} photo={member.data.photo} sizes="(min-width: 64rem) 22vw, (min-width: 40rem) 45vw, 100vw" />
 
                 <span class="member__body">
