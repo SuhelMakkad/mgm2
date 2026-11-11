@@ -45,14 +45,14 @@ To add a project, copy any file in `src/content/projects/`, change the frontmatt
 
 - **Colour:** graphite and warm white with one safety-orange accent. The tokens are at the top of `src/styles/global.css`; components use the semantic variables (`--bg`, `--fg`, `--accent`, `--accent-text`), so changing a token recolours the whole site.
 - **Type:** Archivo, one variable font file in `src/assets/fonts/`, trimmed to weights 400 to 800 and widths 100% to 125%. Headings use the wide, heavy end; body copy uses the regular width.
-- **Icons:** [Phosphor](https://phosphoricons.com), inlined at build time through `src/components/Icon.astro`. Use any icon by name, for example `<Icon name="crane-tower" />`.
+- **Icons:** [Phosphor](https://phosphoricons.com), inlined at build time through `src/components/icon.astro`. Use any icon by name, for example `<Icon name="crane-tower" />`.
 - **Motion:** load-in and scroll reveals, the service panels, the sector rail and page crossfades. All of it is disabled for visitors who prefer reduced motion.
 
 ## 3D build story
 
 The Services page opens with a scroll-driven 3D section: a building assembles in four stages as the page scrolls (structure, systems and fit-out, envelope, then the gilded finish). Each stage links to the service group it draws on.
 
-- **Use it elsewhere:** add `<BuildStory />` from `src/components/BuildStory.astro`, with a `title` to suit the page. Give each instance its own `id` if a page has more than one.
+- **Use it elsewhere:** add `<BuildStory />` from `src/components/build-story.astro`, with a `title` to suit the page. Give each instance its own `id` if a page has more than one.
 - **Stage copy, timing and links:** `src/data/build-stages.ts` is the single source for the captions, the scene's timing and the service group each stage links to.
 - **The scene:** `src/scripts/build-scene.ts` builds everything from simple shapes with [three.js](https://threejs.org), so there is no model file. Nothing moves on its own: a frame is drawn only when the scroll position, pointer or size changes.
 - **Cost:** three.js is about 146 KB gzipped and is fetched only when the section is within two thirds of a screen and the page has finished loading. Pages without the section never load it.
@@ -84,6 +84,6 @@ These were not part of the brief and are placeholders. Search the code for `TODO
 - **Certifications:** add the specific standards, certificate numbers, validity dates and scans in `src/data/certifications.ts`.
 - **History:** add years for the undated milestones in `src/data/history.ts`.
 - **Group companies:** add descriptions and links in `src/data/site.ts`.
-- **Logo:** `src/components/Brand.astro` and `public/favicon.svg` hold a stand-in mark. Replace them with the official artwork, then run `bun run assets`.
+- **Logo:** `src/components/brand.astro` and `public/favicon.svg` hold a stand-in mark. Replace them with the official artwork, then run `bun run assets`.
 - **Social card:** `public/og.jpg` is a 1200x630 capture of the home page hero. Re-capture it if the hero or the colours change.
 - **Copy review:** the service and sector descriptions were drafted for the site and need client approval.

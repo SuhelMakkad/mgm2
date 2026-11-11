@@ -1,5 +1,5 @@
 /**
- * The four stages of the 3D build story (src/components/BuildStory.astro).
+ * The four stages of the 3D build story (src/components/build-story.astro).
  *
  * This is the single source of stage timing: the captions and the 3D scene
  * (src/scripts/build-scene.ts) both read `start` from here.

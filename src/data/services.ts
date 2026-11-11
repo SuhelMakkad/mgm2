@@ -4,7 +4,7 @@
  * Service names come from the client brief. The one-line descriptions were drafted
  * for the website and need client approval. TODO(client): review descriptions.
  *
- * `icon` is a Phosphor icon name (see src/components/Icon.astro).
+ * `icon` is a Phosphor icon name (see src/components/icon.astro).
  * `image` is a file name in src/assets/images (see src/data/images.ts).
  */
 

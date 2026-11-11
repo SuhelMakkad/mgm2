@@ -2,7 +2,7 @@
  * Sectors served. Names come from the client brief; the descriptions were drafted
  * for the website. TODO(client): review descriptions.
  *
- * `icon` is a Phosphor icon name (see src/components/Icon.astro).
+ * `icon` is a Phosphor icon name (see src/components/icon.astro).
  * `image` is a file name in src/assets/images (see src/data/images.ts).
  */
 

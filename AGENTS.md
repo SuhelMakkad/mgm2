@@ -1,3 +1,7 @@
+## File naming
+
+Use kebab-case for project filenames, including Astro components and layouts (for example, `build-story.astro`). Keep filenames and syntax required by frameworks and tooling, such as `AGENTS.md`, `astro.config.mjs`, `content.config.ts`, and `[id].astro`.
+
 ## Development
 
 When starting the dev server, use background mode:
