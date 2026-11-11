@@ -1,0 +1,262 @@
+---
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+
+import Base from '../../../layouts/Base.astro';
+import Arrow from '../../../components/Arrow.astro';
+import CtaBand from '../../../components/CtaBand.astro';
+import PageHero from '../../../components/PageHero.astro';
+import Portrait from '../../../components/Portrait.astro';
+
+import { site } from '../../../data/site';
+import { getTeam } from '../../../data/projects';
+
+export async function getStaticPaths() {
+  const team = await getTeam();
+
+  return team.map((member, index) => ({
+    params: { id: member.id },
+    props: {
+      member,
+      previous: team[index - 1] ?? null,
+      next: team[index + 1] ?? null,
+    },
+  }));
+}
+
+interface Props {
+  member: CollectionEntry<'team'>;
+  previous: CollectionEntry<'team'> | null;
+  next: CollectionEntry<'team'> | null;
+}
+
+const { member, previous, next } = Astro.props;
+const { name, role, tagline, summary, closing, photo } = member.data;
+
+const { Content } = await render(member);
+
+const path = `/about/team/${member.id}/`;
+
+const crumbs = [
+  { label: 'About us', href: '/about/' },
+  { label: 'The team', href: '/about/team/' },
+  { label: name, href: path },
+];
+
+const person = {
+  '@type': 'Person',
+  name,
+  jobTitle: role,
+  description: summary,
+  url: new URL(path, Astro.site).href,
+  worksFor: { '@id': new URL('/#organization', Astro.site).href },
+};
+---
+
+<Base title={`${name}, ${role}`} description={`${name}, ${role} at ${site.shortName}. ${summary}`} ogType="profile" breadcrumbs={crumbs} schema={[person]}>
+  <PageHero label={role} title={name} lede={tagline} crumbs={crumbs} />
+
+  <section class="section">
+    <div class="container profile">
+      <aside class="profile__aside" data-reveal>
+        <Portrait name={name} photo={photo} eager sizes="(min-width: 60rem) 30vw, 100vw" />
+
+        <dl class="profile__facts">
+          <div>
+            <dt>Name</dt>
+            <dd>{name}</dd>
+          </div>
+
+          <div>
+            <dt>Role</dt>
+            <dd>{role}</dd>
+          </div>
+        </dl>
+      </aside>
+
+      <div class="profile__body">
+        <div class="prose" data-reveal>
+          <Content />
+        </div>
+
+        {
+          closing && (
+            <blockquote class="profile__closing" data-reveal>
+              <p>{closing}</p>
+            </blockquote>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  <nav class="pager theme-tint" aria-label="More of the team">
+    <div class="container pager__inner">
+      {
+        previous ? (
+          <a class="pager__link" href={`/about/team/${previous.id}/`} rel="prev">
+            <span class="pager__hint">Previous</span>
+            <strong class="h3">{previous.data.name}</strong>
+            <span class="muted">{previous.data.role}</span>
+          </a>
+        ) : (
+          <a class="pager__link" href="/about/team/">
+            <span class="pager__hint">Back to</span>
+            <strong class="h3">The team</strong>
+            <span class="muted">All profiles</span>
+          </a>
+        )
+      }
+
+      {
+        next ? (
+          <a class="pager__link pager__link--next" href={`/about/team/${next.id}/`} rel="next">
+            <span class="pager__hint">
+              Next
+              <Arrow />
+            </span>
+
+            <strong class="h3">{next.data.name}</strong>
+            <span class="muted">{next.data.role}</span>
+          </a>
+        ) : (
+          <a class="pager__link pager__link--next" href="/about/team/">
+            <span class="pager__hint">
+              Back to
+              <Arrow />
+            </span>
+
+            <strong class="h3">The team</strong>
+            <span class="muted">All profiles</span>
+          </a>
+        )
+      }
+    </div>
+  </nav>
+
+  <CtaBand />
+</Base>
+
+<style>
+  .profile {
+    display: grid;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .profile__aside {
+    display: grid;
+    gap: 1.75rem;
+    width: min(100%, 24rem);
+  }
+
+  .profile__facts {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .profile__facts div {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 0.9rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9375rem;
+  }
+
+  .profile__facts dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.9;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .profile__body {
+    display: grid;
+    gap: 3rem;
+  }
+
+  .profile__closing {
+    max-width: 30em;
+    padding-top: 2.25rem;
+    border-top: 1px solid var(--accent-line);
+
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: -0.008em;
+    text-wrap: balance;
+  }
+
+  @media (min-width: 60rem) {
+    .profile {
+      grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+      gap: clamp(3rem, 7vw, 7rem);
+    }
+
+    .profile__aside {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+      width: 100%;
+    }
+  }
+
+  /* Previous / next */
+
+  .pager {
+    border-top: 1px solid var(--line);
+  }
+
+  .pager__inner {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pager__link {
+    display: grid;
+    gap: 0.3rem;
+    align-content: start;
+    padding-block: clamp(2rem, 4vw, 3.25rem);
+    padding-right: 1.5rem;
+    text-decoration: none;
+  }
+
+  .pager__link--next {
+    justify-items: end;
+    padding-right: 0;
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--line);
+    text-align: right;
+  }
+
+  .pager__hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .pager__hint :global(svg) {
+    width: 1rem;
+    height: 1rem;
+    transition: transform 0.4s var(--ease-out);
+  }
+
+  .pager__link:hover .pager__hint :global(svg) {
+    transform: translateX(0.3rem);
+  }
+
+  .pager .muted {
+    font-size: 0.875rem;
+  }
+</style>

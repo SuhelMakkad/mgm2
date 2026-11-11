@@ -1,0 +1,99 @@
+---
+import OrbitOrnament from './OrbitOrnament.astro';
+import type { Crumb } from '../layouts/Base.astro';
+
+interface Props {
+  label: string;
+  title: string;
+  lede?: string;
+  crumbs?: Crumb[];
+}
+
+const { label, title, lede, crumbs = [] } = Astro.props;
+---
+
+<section class="page-hero theme-dark">
+  <OrbitOrnament />
+
+  <div class="container page-hero__inner">
+    {
+      crumbs.length > 0 && (
+        <nav class="crumbs rise" aria-label="Breadcrumb">
+          <ol role="list">
+            <li>
+              <a href="/">Home</a>
+            </li>
+
+            {crumbs.map((crumb, index) => (
+              <li>{index === crumbs.length - 1 ? <span aria-current="page">{crumb.label}</span> : <a href={crumb.href}>{crumb.label}</a>}</li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+
+    <p class="label rise" style="--d:1">{label}</p>
+    <h1 class="h1 rise" style="--d:2">{title}</h1>
+    {lede && <p class="lede rise" style="--d:3">{lede}</p>}
+
+    <div class="page-hero__extra rise" style="--d:4">
+      <slot />
+    </div>
+  </div>
+</section>
+
+<style>
+  .page-hero {
+    position: relative;
+    overflow: hidden;
+    padding-block: calc(var(--header-h) + clamp(3rem, 2rem + 5vw, 6rem)) clamp(3.5rem, 2rem + 6vw, 6.5rem);
+  }
+
+  .page-hero__inner {
+    position: relative;
+    display: grid;
+    justify-items: start;
+    gap: 1.4rem;
+  }
+
+  .page-hero .h1 {
+    max-width: 15em;
+  }
+
+  .page-hero .lede {
+    max-width: 36em;
+  }
+
+  .page-hero__extra:empty {
+    display: none;
+  }
+
+  .crumbs {
+    margin-bottom: 0.75rem;
+  }
+
+  .crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+
+    font-size: 0.8125rem;
+    color: var(--fg-muted);
+  }
+
+  .crumbs li + li::before {
+    content: '/';
+    margin-right: 0.5rem;
+    opacity: 0.5;
+  }
+
+  .crumbs a {
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .crumbs a:hover {
+    color: var(--fg);
+  }
+</style>

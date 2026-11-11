@@ -1,11 +1,742 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/Arrow.astro';
+import CtaBand from '../components/CtaBand.astro';
+import ElevationDrawing from '../components/ElevationDrawing.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import SectionHead from '../components/SectionHead.astro';
+import SectorIcon from '../components/SectorIcon.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import { site } from '../data/site';
+import { serviceGroups, serviceCount } from '../data/services';
+import { sectors } from '../data/sectors';
+import { evolution } from '../data/history';
+import { certifications } from '../data/certifications';
+import { getProjects } from '../data/projects';
+
+const projects = await getProjects();
+const featured = projects.filter((project) => project.data.featured).slice(0, 3);
+
+// "47 Years of Building Trust." becomes two sentences, each broken after "of" so the lines stack in parallel.
+const taglineLines = site.tagline
+  .split('. ')
+  .map((sentence) => (sentence.endsWith('.') ? sentence : `${sentence}.`))
+  .map((sentence) => sentence.split(/(?<= of) /));
+
+const stats = [
+  { value: String(site.founded), label: 'Established in Dubai' },
+  { value: `${site.years}+`, count: site.years, suffix: '+', label: 'Years of building trust' },
+  { value: String(serviceCount), count: serviceCount, label: 'Services under one roof' },
+  { value: String(sectors.length), count: sectors.length, label: 'Sectors served' },
+];
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<Base title={`${site.name} | Construction Company in Dubai, UAE`} fullTitle>
+  <section class="hero theme-dark">
+    <div class="container hero__grid">
+      <div class="hero__copy">
+        <h1 class="hero__title">
+          <span class="label rise">{site.name} · {site.locality}, UAE</span>
+
+          {
+            taglineLines.map((parts, index) => (
+              <span class:list={['display rise', { hero__accent: index === 1 }]} style={`--d:${index + 1}`}>
+                {parts.map((part) => (
+                  <span class="hero__line">{part} </span>
+                ))}
+              </span>
+            ))
+          }
+        </h1>
+
+        <p class="lede rise" style="--d:3">
+          A Dubai construction company established in {site.founded}. We deliver civil works, buildings, MEP, fit-out and specialist finishes across the UAE.
+        </p>
+
+        <div class="hero__actions rise" style="--d:4">
+          <a class="btn" href="/services/">
+            Explore our services
+            <Arrow />
+          </a>
+
+          <a class="btn btn--ghost" href="/projects/">View projects</a>
+        </div>
+      </div>
+
+      <div class="hero__art">
+        <ElevationDrawing />
+      </div>
+    </div>
+
+    <div class="container">
+      <dl class="stats rise" style="--d:6">
+        {
+          stats.map((stat) => (
+            <div class="stats__item">
+              <dt>{stat.label}</dt>
+
+              <dd data-count={stat.count} data-suffix={stat.suffix}>
+                {stat.value}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container intro">
+      <SectionHead label="Who we are" title="From a coating contractor to a full-fledged construction company." />
+
+      <div class="intro__body">
+        <div class="stack" data-reveal>
+          <p class="intro__lead">
+            What began as a humble coating contracting company metamorphosed into a civil maintenance company and further grew into a full-fledged construction company from where we have been marching forward ever since.
+          </p>
+
+          <p class="muted">
+            Over the past {site.years} years, we have witnessed and been part of Dubai's remarkable transformation into one of the world's most dynamic cities. Our history is not simply measured in years, but in the trust we have earned, the relationships we have built, and the lasting contributions we continue to make.
+          </p>
+        </div>
+
+        <ol class="evolution" role="list">
+          {
+            evolution.map((step, index) => (
+              <li data-reveal style={`--i:${index + 1}`}>
+                <span class="evolution__node" aria-hidden="true" />
+                <strong>{step.label}</strong>
+                <span class="muted">{step.note}</span>
+              </li>
+            ))
+          }
+        </ol>
+
+        <p class="intro__links" data-reveal>
+          <a class="arrow-link" href="/about/">
+            About the company
+            <Arrow />
+          </a>
+
+          <a class="arrow-link" href="/about/history/">
+            Our history
+            <Arrow />
+          </a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section theme-tint">
+    <div class="container">
+      <div class="split-head">
+        <SectionHead
+          label="Services"
+          title="One contractor, from foundations to gold leaf."
+          lede={`${serviceCount} services across four disciplines, covering the full life of a building.`}
+        />
+
+        <a class="arrow-link" href="/services/" data-reveal>
+          All services
+          <Arrow />
+        </a>
+      </div>
+
+      <ul class="schedule" role="list">
+        {
+          serviceGroups.map((group, index) => (
+            <li data-reveal style={`--i:${index}`}>
+              <a class="schedule__row" href={`/services/#${group.id}`}>
+                <span class="schedule__bubble" aria-hidden="true">
+                  {group.letter}
+                </span>
+
+                <span class="schedule__title">
+                  <strong class="h3">{group.title}</strong>
+                  <small>{group.services.length} services</small>
+                </span>
+
+                <span class="schedule__list">{group.services.map((service) => service.name).join(' · ')}</span>
+
+                <Arrow />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="split-head">
+        <SectionHead
+          label="Sectors"
+          title={`Experience across ${sectors.length} sectors.`}
+          lede="From infrastructure and fuel facilities to palatial villas and houses of worship."
+        />
+
+        <a class="arrow-link" href="/sectors/" data-reveal>
+          All sectors
+          <Arrow />
+        </a>
+      </div>
+
+      <ul class="sector-grid" role="list">
+        {
+          sectors.map((sector, index) => (
+            <li data-reveal style={`--i:${index % 7}`}>
+              <a class="sector-tile" href={`/sectors/#${sector.id}`}>
+                <SectorIcon icon={sector.icon} />
+                <span>{sector.name}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section quote theme-dark">
+    <div class="container quote__inner">
+      <p class="label" data-reveal>Message from the Managing Director</p>
+
+      <blockquote class="quote__text" data-reveal style="--i:1">
+        <p>
+          Every project we undertake is more than just a structure; it is a responsibility, a commitment, and an opportunity to create something lasting.
+        </p>
+      </blockquote>
+
+      <div class="quote__foot" data-reveal style="--i:2">
+        <p>
+          <strong>John Kurien</strong>
+          <span class="muted">Managing Director</span>
+        </p>
+
+        <a class="arrow-link" href="/about/#message">
+          Read the full message
+          <Arrow />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="split-head">
+        <SectionHead label="Projects" title="Work in progress, work delivered." lede="A selection of ongoing, completed and upcoming projects." />
+
+        <a class="arrow-link" href="/projects/" data-reveal>
+          All projects
+          <Arrow />
+        </a>
+      </div>
+
+      <ul class="project-grid" role="list">
+        {
+          featured.map((project, index) => (
+            <li data-reveal style={`--i:${index}`}>
+              <ProjectCard project={project} />
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="certs theme-tint">
+    <div class="container certs__inner" data-reveal>
+      <p class="label">Certifications</p>
+
+      <ul class="certs__list" role="list">
+        {certifications.map((certification) => <li>{certification.name}</li>)}
+      </ul>
+
+      <a class="arrow-link" href="/certifications/">
+        View certifications
+        <Arrow />
+      </a>
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<style>
+  /* Hero */
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-top: calc(var(--header-h) + clamp(2rem, 1rem + 4vw, 4.5rem));
+  }
+
+  .hero__grid {
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+  }
+
+  .hero__copy {
+    display: grid;
+    justify-items: start;
+    gap: 1.75rem;
+  }
+
+  .hero__title {
+    display: grid;
+    justify-items: start;
+  }
+
+  .hero__title .label {
+    margin-bottom: 1.6rem;
+  }
+
+  .hero__title .display {
+    font-size: clamp(1.9rem, 8.4vw, 4.3rem);
+  }
+
+  .hero__line {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .hero__accent {
+    color: var(--accent);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .hero__art {
+    width: min(100%, 34rem);
+    margin-inline: auto;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .stats__item {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.35rem;
+    padding: 1.4rem 1rem 1.6rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .stats dd {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 1.5rem + 2vw, 3.1rem);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  .stats dt {
+    font-size: 0.875rem;
+    color: var(--fg-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .stats__item {
+      padding-left: 1.5rem;
+      border-bottom: 0;
+      border-left: 1px solid var(--line);
+    }
+
+    .stats__item:first-child {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .hero__grid {
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr);
+      gap: clamp(2rem, 4vw, 4rem);
+    }
+
+    .hero__title .display {
+      font-size: clamp(2.6rem, 5vw, 4.3rem);
+    }
+
+    .hero__art {
+      width: 100%;
+      margin: 0;
+    }
+  }
+
+  /* Shared section heads with a trailing link */
+
+  .split-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem 3rem;
+    margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  }
+
+  /* Intro */
+
+  .intro {
+    display: grid;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .intro__body {
+    display: grid;
+    gap: 2.75rem;
+  }
+
+  .intro__lead {
+    font-size: var(--step-1);
+    line-height: 1.55;
+  }
+
+  .intro__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 2.25rem;
+  }
+
+  .evolution {
+    display: grid;
+    gap: 0;
+    margin: 0;
+  }
+
+  .evolution li {
+    position: relative;
+    display: grid;
+    gap: 0.15rem;
+    padding: 0 0 1.5rem 2rem;
+    border-left: 1px solid var(--line-strong);
+  }
+
+  .evolution li:last-child {
+    padding-bottom: 0;
+    border-left-color: transparent;
+  }
+
+  .evolution__node {
+    position: absolute;
+    top: 0.35rem;
+    left: -0.3125rem;
+    width: 0.5625rem;
+    height: 0.5625rem;
+
+    background: var(--bg);
+    border: 1px solid var(--accent-line);
+    border-radius: 50%;
+  }
+
+  .evolution li:last-child .evolution__node {
+    background: var(--accent-line);
+  }
+
+  .evolution strong {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .evolution .muted {
+    font-size: 0.875rem;
+  }
+
+  @media (min-width: 40rem) {
+    .evolution {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .evolution li,
+    .evolution li:last-child {
+      padding: 1.5rem 1.5rem 0 0;
+      border-left: 0;
+      border-top: 1px solid var(--line-strong);
+    }
+
+    .evolution__node {
+      top: -0.3125rem;
+      left: 0;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .intro {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: clamp(3rem, 7vw, 7rem);
+    }
+  }
+
+  /* Services schedule */
+
+  .schedule {
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .schedule__row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.9rem 1.25rem;
+    padding: 1.6rem 0.25rem;
+    border-bottom: 1px solid var(--line);
+
+    text-decoration: none;
+    transition:
+      padding 0.5s var(--ease-out),
+      background-color 0.4s var(--ease-out);
+  }
+
+  .schedule__bubble {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--accent-line);
+    border-radius: 50%;
+
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--accent);
+    transition:
+      background-color 0.4s var(--ease-out),
+      color 0.4s var(--ease-out);
+  }
+
+  .schedule__title {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .schedule__title small {
+    font-size: 0.8125rem;
+    color: var(--fg-muted);
+  }
+
+  .schedule__list {
+    grid-column: 2 / -1;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--fg-muted);
+  }
+
+  .schedule__row :global(svg) {
+    grid-row: 1;
+    grid-column: 3;
+    width: 1.3rem;
+    height: 1.3rem;
+    color: var(--accent);
+    transition: transform 0.5s var(--ease-out);
+  }
+
+  .schedule__row:hover {
+    padding-inline: 1rem 0.75rem;
+    background: rgb(255 255 255 / 0.5);
+  }
+
+  .schedule__row:hover .schedule__bubble {
+    background: var(--ink-900);
+    border-color: var(--ink-900);
+    color: var(--brass-300);
+  }
+
+  .schedule__row:hover :global(svg) {
+    transform: translateX(0.35rem);
+  }
+
+  @media (min-width: 60rem) {
+    .schedule__row {
+      grid-template-columns: auto minmax(0, 0.8fr) minmax(0, 1.3fr) auto;
+      gap: 2rem;
+      padding-block: 2rem;
+    }
+
+    .schedule__list {
+      grid-column: auto;
+    }
+
+    .schedule__row :global(svg) {
+      grid-column: 4;
+    }
+  }
+
+  /* Sectors */
+
+  .sector-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+
+  .sector-grid li {
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sector-tile {
+    display: grid;
+    align-content: space-between;
+    gap: 1.75rem;
+    height: 100%;
+    min-height: 10.5rem;
+    padding: 1.4rem 1.25rem;
+
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.3;
+    text-decoration: none;
+    color: var(--fg);
+
+    transition:
+      background-color 0.4s var(--ease-out),
+      color 0.4s var(--ease-out);
+  }
+
+  .sector-tile :global(svg) {
+    color: var(--ink-700);
+    transition:
+      transform 0.6s var(--ease-out),
+      color 0.4s var(--ease-out);
+  }
+
+  .sector-tile:hover {
+    background: var(--ink-900);
+    color: var(--on-dark);
+  }
+
+  .sector-tile:hover :global(svg) {
+    color: var(--brass-300);
+    transform: translateY(-0.3rem);
+  }
+
+  @media (min-width: 40rem) {
+    .sector-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .sector-grid {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+  }
+
+  /* Quote */
+
+  .quote {
+    position: relative;
+  }
+
+  .quote__inner {
+    display: grid;
+    justify-items: start;
+    gap: 2.25rem;
+  }
+
+  .quote__text {
+    max-width: 22em;
+
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 400;
+    line-height: 1.22;
+    letter-spacing: -0.012em;
+  }
+
+  .quote__text p::before {
+    content: '\201C';
+    color: var(--accent);
+  }
+
+  .quote__text p::after {
+    content: '\201D';
+    color: var(--accent);
+  }
+
+  .quote__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem 3rem;
+    width: 100%;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .quote__foot p {
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .quote__foot .muted {
+    font-size: 0.875rem;
+  }
+
+  /* Projects */
+
+  .project-grid {
+    display: grid;
+    gap: 3rem 2rem;
+    margin: 0;
+  }
+
+  @media (min-width: 40rem) {
+    .project-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .project-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* Certifications strip */
+
+  .certs {
+    padding-block: 2.25rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .certs__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem 2.5rem;
+  }
+
+  .certs__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2.25rem;
+    margin: 0;
+
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+</style>

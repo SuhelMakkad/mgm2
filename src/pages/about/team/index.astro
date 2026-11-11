@@ -1,0 +1,198 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Arrow from '../../../components/Arrow.astro';
+import CtaBand from '../../../components/CtaBand.astro';
+import PageHero from '../../../components/PageHero.astro';
+import Portrait from '../../../components/Portrait.astro';
+
+import { getTeam } from '../../../data/projects';
+
+const team = await getTeam();
+const [director, ...managers] = team;
+
+const crumbs = [
+  { label: 'About us', href: '/about/' },
+  { label: 'The team', href: '/about/team/' },
+];
+---
+
+<Base
+  title="The Team"
+  description="Meet the leadership of Al Madar MGM Construction LLC: Managing Director John Kurien and the managers who lead procurement, operations, projects and HSE."
+  breadcrumbs={crumbs}
+>
+  <PageHero
+    label="The team"
+    title="Our greatest strength lies in our people."
+    lede="Their expertise, professionalism, dedication, and shared passion for excellence have been instrumental in shaping our success and sustaining our position in an ever-evolving industry."
+    crumbs={crumbs}
+  />
+
+  <section class="section">
+    <div class="container">
+      <article class="lead" data-reveal>
+        <a class="lead__portrait" href={`/about/team/${director.id}/`} tabindex="-1" aria-hidden="true">
+          <Portrait name={director.data.name} photo={director.data.photo} eager sizes="(min-width: 60rem) 36vw, 100vw" />
+        </a>
+
+        <div class="lead__body">
+          <p class="label">{director.data.role}</p>
+          <h2 class="h1">{director.data.name}</h2>
+          <p class="lede">{director.data.summary}</p>
+
+          {
+            director.data.closing && (
+              <blockquote class="lead__quote">
+                <p>{director.data.closing}</p>
+              </blockquote>
+            )
+          }
+
+          <a class="arrow-link" href={`/about/team/${director.id}/`}>
+            Read {director.data.name.split(' ')[0]}'s profile
+            <Arrow />
+          </a>
+        </div>
+      </article>
+
+      <ul class="members" role="list">
+        {
+          managers.map((member, index) => (
+            <li data-reveal style={`--i:${index % 2}`}>
+              <a class="member" href={`/about/team/${member.id}/`}>
+                <Portrait name={member.data.name} photo={member.data.photo} sizes="(min-width: 64rem) 22vw, (min-width: 40rem) 45vw, 100vw" />
+
+                <span class="member__body">
+                  <span class="member__role">{member.data.role}</span>
+                  <strong class="h3">{member.data.name}</strong>
+                  {member.data.tagline && <span class="member__tagline">{member.data.tagline}</span>}
+
+                  <span class="member__more">
+                    Read profile
+                    <Arrow />
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand title="Want to build with us?" text="We are always glad to hear from experienced people who share our standards. See the careers section on our contact page." />
+</Base>
+
+<style>
+  /* Managing Director */
+
+  .lead {
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+    padding-bottom: clamp(3.5rem, 7vw, 6rem);
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .lead__portrait {
+    display: block;
+    width: min(100%, 26rem);
+  }
+
+  .lead__body {
+    display: grid;
+    justify-items: start;
+    gap: 1.4rem;
+  }
+
+  .lead__quote {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--accent-line);
+
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    line-height: 1.5;
+    max-width: 34em;
+  }
+
+  @media (min-width: 60rem) {
+    .lead {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: clamp(3rem, 7vw, 7rem);
+    }
+
+    .lead__portrait {
+      width: 100%;
+    }
+  }
+
+  /* Managers */
+
+  .members {
+    display: grid;
+    gap: 3rem 2rem;
+    margin: clamp(3.5rem, 7vw, 6rem) 0 0;
+  }
+
+  .member {
+    display: grid;
+    gap: 1.25rem;
+    align-content: start;
+    height: 100%;
+    text-decoration: none;
+  }
+
+  .member__body {
+    display: grid;
+    gap: 0.5rem;
+    justify-items: start;
+    align-content: start;
+  }
+
+  .member__role {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .member__tagline {
+    font-size: 0.9688rem;
+    color: var(--fg-muted);
+  }
+
+  .member__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+
+  .member__more :global(svg) {
+    width: 1.05em;
+    height: 1.05em;
+    color: var(--accent);
+    transition: transform 0.4s var(--ease-out);
+  }
+
+  .member:hover .member__more :global(svg) {
+    transform: translateX(0.3em);
+  }
+
+  @media (min-width: 40rem) {
+    .members {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .members {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>

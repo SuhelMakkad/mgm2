@@ -1,0 +1,264 @@
+---
+/**
+ * Hero artwork: a construction elevation set out the way a drawing office would,
+ * on gridlines A to E, with a dimension line that measures the company's 47 years.
+ * The linework draws itself on load, then the hoisted beam and the orbit keep a slow idle motion.
+ *
+ * Every `.draw` shape carries pathLength="1" so one dash animation fits any length.
+ * `--o` is the order in which shapes appear.
+ */
+import { site } from '../data/site';
+
+const GROUND = 440;
+const TOWER_TOP = 124;
+
+const grids = [
+  { x: 150, label: 'A' },
+  { x: 240, label: 'B' },
+  { x: 330, label: 'C' },
+  { x: 420, label: 'D' },
+  { x: 510, label: 'E' },
+];
+
+// Tower, between grids A and C: seven slabs cast, three storeys enclosed.
+const towerColumns = [150, 240, 330];
+const towerSlabs = [400, 360, 320, 280, 240, 200, 160];
+
+const mullionXs = [172.5, 195, 217.5, 262.5, 285, 307.5];
+const facadeStoreys = [405, 365, 325].map((top) => mullionXs.map((x) => `M${x} ${top}v35`).join(''));
+
+const rebar = towerColumns.map((x) => `M${x - 3} ${TOWER_TOP}v-11M${x} ${TOWER_TOP}v-13M${x + 3} ${TOWER_TOP}v-11`).join('');
+
+// Low block, between grids C and E: an arcade below, a dome above.
+const windows = [346, 369, 392, 436, 459, 482];
+
+// Tower crane lacing.
+const mastLacing = Array.from({ length: 16 }, (_, i) => `${i === 0 ? 'M' : 'L'}${i % 2 === 0 ? 84 : 96} ${GROUND - i * 24}`).join('');
+const jibLacing = Array.from({ length: 16 }, (_, i) => `${i === 0 ? 'M' : 'L'}${(102 + i * 12.4).toFixed(1)} ${i % 2 === 0 ? 64 : 56}`).join('');
+
+const hatch = [28, 42, 56, 70, 84, 98, 112, 534, 548, 562, 576, 590].map((x) => `M${x} 449l7-7`).join('');
+
+const levels = [
+  { y: 160, label: 'L 07', from: 336 },
+  { y: 336, label: 'L 02', from: 516 },
+  { y: GROUND, label: 'L 00', from: 556 },
+];
+
+const currentYear = site.founded + site.years;
+---
+
+<svg class="elevation" viewBox="0 0 640 552" fill="none" aria-hidden="true">
+  <!-- Orbit ("al madar") -->
+  <circle class="orbit draw" style="--o:0" cx="430" cy="230" r="132" pathLength="1"></circle>
+
+  <g class="orbit-dot">
+    <circle class="fade" style="--o:18" cx="430" cy="98" r="3.5"></circle>
+  </g>
+
+  <!-- Setting-out grid -->
+  {
+    grids.map((grid, index) => (
+      <g class="fade" style={`--o:${1 + index}`}>
+        <line class="grid" x1={grid.x} y1="92" x2={grid.x} y2="463" />
+        <circle class="note" cx={grid.x} cy="476" r="13" />
+
+        <text class="text text--brass" x={grid.x} y="480" text-anchor="middle">
+          {grid.label}
+        </text>
+      </g>
+    ))
+  }
+
+  <!-- Ground -->
+  <line class="strong draw" style="--o:0" x1="24" y1={GROUND} x2="612" y2={GROUND} pathLength="1"></line>
+  <path class="minor fade" style="--o:6" d={hatch}></path>
+
+  <!-- Tower: columns, slabs, reinforcement -->
+  {towerColumns.map((x, index) => <line class="strong draw" style={`--o:${3 + index}`} x1={x} y1={GROUND} x2={x} y2={TOWER_TOP} pathLength="1" />)}
+  {towerSlabs.map((y, index) => <rect class="strong draw" style={`--o:${5 + index}`} x="144" y={y} width="192" height="5" pathLength="1" />)}
+
+  <path class="minor draw" style="--o:13" d={rebar} pathLength="1"></path>
+
+  <!-- Tower: enclosed storeys and the storey being braced -->
+  {facadeStoreys.map((d, index) => <path class="minor draw" style={`--o:${10 + index}`} d={d} pathLength="1" />)}
+
+  <path class="minor draw" style="--o:13" d="M150 320l90-35M150 285l90 35M240 320l90-35M240 285l90 35" pathLength="1"></path>
+
+  <!-- Low block: frame, arcade, windows, dome -->
+  <path class="strong draw" style="--o:6" d="M420 440V341M510 440V341" pathLength="1"></path>
+  <rect class="strong draw" style="--o:7" x="330" y="376" width="186" height="5" pathLength="1"></rect>
+  <rect class="strong draw" style="--o:8" x="330" y="336" width="186" height="5" pathLength="1"></rect>
+
+  <path class="strong draw" style="--o:9" d="M349 440v-28a26 26 0 0 1 52 0v28M439 440v-28a26 26 0 0 1 52 0v28" pathLength="1"></path>
+  <path class="strong draw" style="--o:10" d="M336 336v-10h180v10M401 326a22 22 0 0 1 44 0M423 304v-11" pathLength="1"></path>
+
+  {windows.map((x) => <rect class="minor draw" style="--o:11" x={x} y="350" width="12" height="18" pathLength="1" />)}
+
+  <!-- Tower crane -->
+  <path class="strong draw" style="--o:4" d="M84 440V76M96 440V76" pathLength="1"></path>
+  <path class="minor draw" style="--o:5" d={mastLacing} pathLength="1"></path>
+
+  <path class="strong draw" style="--o:8" d="M80 64h20v12H80zM84 64l6-34 6 34" pathLength="1"></path>
+  <path class="strong draw" style="--o:9" d="M36 64h264M102 56h186l12 8" pathLength="1"></path>
+  <path class="minor draw" style="--o:10" d={jibLacing} pathLength="1"></path>
+
+  <path class="minor draw" style="--o:11" d="M90 30l130 26M90 30 44 64" pathLength="1"></path>
+  <rect class="strong draw" style="--o:11" x="36" y="64" width="22" height="18" pathLength="1"></rect>
+
+  <!-- Hoisted beam -->
+  <g class="hoist">
+    <path class="strong draw" style="--o:14" d="M279 64h12v4h-12zM285 68v30M281.5 98h7v6h-7z" pathLength="1"></path>
+    <path class="minor draw" style="--o:15" d="M285 104l-20 12M285 104l20 12" pathLength="1"></path>
+    <rect class="note draw" style="--o:16" x="261" y="116" width="48" height="4" pathLength="1"></rect>
+  </g>
+
+  <!-- Levels -->
+  {
+    levels.map((level, index) => (
+      <g class="fade" style={`--o:${15 + index}`}>
+        <line class="grid" x1={level.from} y1={level.y} x2="556" y2={level.y} />
+        <path class="note" d={`M556 ${level.y}h56M570 ${level.y}l-5-8h10z`} />
+
+        <text class="text" x="582" y={level.y - 7}>
+          {level.label}
+        </text>
+      </g>
+    ))
+  }
+
+  <!-- Dimension line: 1979 to today -->
+  <path class="note draw" style="--o:17" d="M150 516h360" pathLength="1"></path>
+  <path class="note fade" style="--o:17" d="M150 494v30M510 494v30M145 521l10-10M505 521l10-10"></path>
+
+  <g class="fade" style="--o:19">
+    <text class="text text--brass text--dim" x="330" y="508" text-anchor="middle">{site.years} YEARS</text>
+    <text class="text" x="150" y="542" text-anchor="middle">{site.founded}</text>
+    <text class="text" x="510" y="542" text-anchor="middle">{currentYear}</text>
+  </g>
+</svg>
+
+<style>
+  .elevation {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .strong {
+    stroke: rgb(233 236 232 / 0.84);
+    stroke-width: 1.4;
+  }
+
+  .minor {
+    stroke: rgb(233 236 232 / 0.4);
+    stroke-width: 1;
+  }
+
+  .note {
+    stroke: var(--brass-400);
+    stroke-width: 1;
+  }
+
+  .grid {
+    stroke: rgb(200 163 95 / 0.45);
+    stroke-width: 0.8;
+    stroke-dasharray: 10 3 2 3;
+  }
+
+  .orbit {
+    stroke: rgb(200 163 95 / 0.42);
+    stroke-width: 1;
+  }
+
+  .orbit-dot circle {
+    fill: var(--brass-400);
+  }
+
+  .text {
+    fill: var(--on-dark-muted);
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+  }
+
+  .text--brass {
+    fill: var(--brass-300);
+  }
+
+  .text--dim {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+  }
+
+  /* Draw-in */
+
+  .draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: draw 1.5s var(--ease-in-out) forwards;
+    animation-delay: calc(var(--o) * 85ms + 200ms);
+  }
+
+  .orbit.draw {
+    animation-duration: 3.2s;
+  }
+
+  .fade {
+    opacity: 0;
+    animation: fade 0.9s ease forwards;
+    animation-delay: calc(var(--o) * 85ms + 300ms);
+  }
+
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes fade {
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Idle motion: the load sways a fraction, the orbit turns once every two minutes. */
+
+  .hoist {
+    transform-origin: 285px 66px;
+    animation: sway 7s var(--ease-in-out) 3.5s infinite alternate;
+  }
+
+  .orbit-dot {
+    transform-origin: 430px 230px;
+    transform: rotate(48deg);
+    animation: orbit 120s linear infinite;
+  }
+
+  @keyframes sway {
+    from {
+      transform: rotate(-1.1deg);
+    }
+
+    to {
+      transform: rotate(1.1deg);
+    }
+  }
+
+  @keyframes orbit {
+    from {
+      transform: rotate(48deg);
+    }
+
+    to {
+      transform: rotate(408deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hoist,
+    .orbit-dot {
+      animation: none;
+    }
+  }
+</style>

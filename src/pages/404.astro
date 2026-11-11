@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/Arrow.astro';
+import PageHero from '../components/PageHero.astro';
+---
+
+<Base title="Page Not Found" description="The page you were looking for could not be found." noindex>
+  <PageHero label="Error 404" title="This page is not on the drawings." lede="The page may have moved, or the address may be mistyped. These will get you back on site.">
+    <div class="actions">
+      <a class="btn" href="/">
+        Back to home
+        <Arrow />
+      </a>
+
+      <a class="btn btn--ghost" href="/projects/">View projects</a>
+      <a class="btn btn--ghost" href="/contact/">Contact us</a>
+    </div>
+  </PageHero>
+</Base>
+
+<style>
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+</style>

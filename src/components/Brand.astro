@@ -1,0 +1,70 @@
+---
+/**
+ * Wordmark with a simple mark: three rising blocks inside an orbit ("al madar").
+ * TODO(client): replace with the official logo artwork.
+ */
+import { site } from '../data/site';
+---
+
+<a class="brand" href="/" title={`${site.name}, home`}>
+  <svg class="brand__mark" viewBox="0 0 40 40" aria-hidden="true">
+    <circle class="brand__ring" cx="20" cy="20" r="18.25" fill="none" stroke-width="1.5"></circle>
+    <circle class="brand__dot" cx="32.9" cy="7.1" r="2.6"></circle>
+
+    <path fill="currentColor" d="M10.5 29v-9H15v9zM17.75 29V11h4.5v18zM25 29V16h4.5v13z"></path>
+  </svg>
+
+  <span class="brand__text">
+    <span class="brand__name">{site.shortName} </span>
+    <span class="brand__sub">{site.legalSuffix}</span>
+  </span>
+</a>
+
+<style>
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    color: var(--fg);
+    text-decoration: none;
+  }
+
+  .brand__mark {
+    flex: none;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .brand__ring {
+    stroke: var(--accent-line);
+  }
+
+  .brand__dot {
+    fill: var(--accent-line);
+  }
+
+  .brand__text {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .brand__name {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+  }
+
+  .brand__sub {
+    font-size: 0.625rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+    white-space: nowrap;
+  }
+</style>

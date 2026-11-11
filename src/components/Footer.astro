@@ -1,0 +1,180 @@
+---
+import Brand from './Brand.astro';
+import Arrow from './Arrow.astro';
+import { site, contact, footerNav, groupCompanies } from '../data/site';
+
+const year = new Date().getFullYear();
+const mottoLines = site.motto.split('. ').map((line) => (line.endsWith('.') ? line : `${line}.`));
+---
+
+<footer class="site-footer theme-dark">
+  <div class="container">
+    <div class="site-footer__top">
+      <p class="site-footer__motto">
+        {mottoLines.map((line) => <span>{line}</span>)}
+      </p>
+
+      <a class="btn" href="/contact/">
+        Start a conversation
+        <Arrow />
+      </a>
+    </div>
+
+    <div class="site-footer__grid">
+      <div class="site-footer__about">
+        <Brand />
+
+        <p class="muted">A Dubai construction company, building trust since {site.founded}.</p>
+
+        <address class="muted">
+          {site.locality}, {site.country}
+          <br />
+          <a href={`mailto:${contact.email}`}>{contact.email}</a>
+
+          {
+            contact.phone && (
+              <Fragment>
+                <br />
+                <a href={`tel:${contact.phone.replace(/\s+/g, '')}`}>{contact.phone}</a>
+              </Fragment>
+            )
+          }
+        </address>
+      </div>
+
+      {
+        footerNav.map((column) => (
+          <nav aria-label={column.title}>
+            <h2 class="site-footer__title">{column.title}</h2>
+
+            <ul role="list">
+              {column.links.map((link) => (
+                <li>
+                  <a href={link.href}>{link.label}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
+
+      <div>
+        <h2 class="site-footer__title">Group companies</h2>
+
+        <ul role="list">
+          {groupCompanies.map((company) => <li>{company.url ? <a href={company.url}>{company.name}</a> : company.name}</li>)}
+        </ul>
+      </div>
+    </div>
+
+    <div class="site-footer__base">
+      <p>© {year} {site.name}. All rights reserved.</p>
+      <p>Established {site.founded} · {site.locality}, UAE</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    --bg: var(--ink-950);
+    background: var(--bg);
+    padding-block: clamp(3.5rem, 2rem + 6vw, 6.5rem) 2rem;
+  }
+
+  .site-footer__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+
+    padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .site-footer__motto {
+    display: grid;
+
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 500;
+    line-height: 1.14;
+    letter-spacing: -0.015em;
+  }
+
+  .site-footer__motto span:last-child {
+    color: var(--accent);
+  }
+
+  .site-footer__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem 2rem;
+    padding-block: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .site-footer__about {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 1.25rem;
+    align-content: start;
+    max-width: 22rem;
+    font-size: 0.9375rem;
+  }
+
+  .site-footer__title {
+    margin-bottom: 1rem;
+
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .site-footer ul {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0;
+
+    font-size: 0.9375rem;
+    color: var(--fg-muted);
+  }
+
+  .site-footer a {
+    text-decoration: none;
+    color: var(--fg-muted);
+    transition: color 0.2s;
+  }
+
+  .site-footer a:hover {
+    color: var(--fg);
+  }
+
+  .site-footer .btn {
+    color: var(--btn-fg);
+  }
+
+  .site-footer__base {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+
+    font-size: 0.8125rem;
+    color: var(--fg-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .site-footer__grid {
+      grid-template-columns: 1.6fr repeat(4, minmax(0, 1fr));
+    }
+
+    .site-footer__about {
+      grid-column: auto;
+    }
+  }
+</style>

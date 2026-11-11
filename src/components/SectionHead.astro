@@ -1,0 +1,28 @@
+---
+interface Props {
+  title: string;
+  label?: string;
+  lede?: string;
+  id?: string;
+}
+
+const { title, label, lede, id } = Astro.props;
+---
+
+<header class="section-head" data-reveal>
+  {label && <p class="label">{label}</p>}
+  <h2 class="h2" id={id}>{title}</h2>
+  {lede && <p class="lede">{lede}</p>}
+
+  <slot />
+</header>
+
+<style>
+  .section-head {
+    display: grid;
+    justify-items: start;
+    align-content: start;
+    gap: 1.25rem;
+    max-width: 46rem;
+  }
+</style>

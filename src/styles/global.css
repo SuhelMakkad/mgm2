@@ -1,0 +1,582 @@
+/* ==========================================================================
+   Al Madar MGM — design tokens and base styles
+   Palette: petrol ink, plaster paper and brass leaf, drawn from the company's
+   own materials. Type: Besley (a Clarendon, the face of builders' plaques)
+   over Libre Franklin.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  --ink-950: #071115;
+  --ink-900: #0b1a20;
+  --ink-800: #11303a;
+  --ink-700: #1b4552;
+
+  --paper: #f4f5f2;
+  --paper-2: #e9ebe6;
+  --paper-3: #dcdfd8;
+  --surface: #fcfcfa;
+
+  --text: #132127;
+  --muted: #54646b;
+
+  --brass-700: #7a5b22;
+  --brass-500: #b08a45;
+  --brass-400: #c8a35f;
+  --brass-300: #dcc08a;
+
+  --on-dark: #e9ece8;
+  --on-dark-muted: #a0b0b5;
+
+  --font-display: var(--font-besley), Georgia, serif;
+  --font-body: var(--font-franklin), 'Helvetica Neue', Arial, sans-serif;
+
+  --step--1: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+  --step-0: clamp(1rem, 0.97rem + 0.15vw, 1.0625rem);
+  --step-1: clamp(1.125rem, 1.06rem + 0.3vw, 1.3125rem);
+  --step-2: clamp(1.3rem, 1.18rem + 0.6vw, 1.7rem);
+  --step-3: clamp(1.75rem, 1.4rem + 1.6vw, 2.75rem);
+  --step-4: clamp(2.2rem, 1.55rem + 3vw, 4rem);
+  --step-5: clamp(2.5rem, 1.45rem + 4.9vw, 5.1rem);
+
+  --gutter: clamp(1.25rem, 0.5rem + 3.5vw, 3.5rem);
+  --max: 78rem;
+  --section: clamp(4.5rem, 3rem + 7vw, 9rem);
+  --header-h: 4.75rem;
+  --radius: 2px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Surface themes. Components read the semantic variables, so they work on either. */
+
+:root,
+.theme-light {
+  --bg: var(--paper);
+  --fg: var(--text);
+  --fg-muted: var(--muted);
+  --line: rgb(19 33 39 / 0.14);
+  --line-strong: rgb(19 33 39 / 0.32);
+  --accent: var(--brass-700);
+  --accent-line: var(--brass-500);
+  --btn-bg: var(--ink-900);
+  --btn-fg: var(--on-dark);
+  --btn-bg-hover: var(--ink-700);
+}
+
+.theme-dark {
+  --bg: var(--ink-900);
+  --fg: var(--on-dark);
+  --fg-muted: var(--on-dark-muted);
+  --line: rgb(233 236 232 / 0.15);
+  --line-strong: rgb(233 236 232 / 0.38);
+  --accent: var(--brass-300);
+  --accent-line: var(--brass-400);
+  --btn-bg: var(--brass-400);
+  --btn-fg: var(--ink-950);
+  --btn-bg-hover: var(--brass-300);
+}
+
+.theme-light,
+.theme-dark {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.theme-tint {
+  --bg: var(--paper-2);
+  background: var(--bg);
+}
+
+/* --------------------------------------------------------------------------
+   Reset
+   -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-h) + 1.5rem);
+  scrollbar-gutter: stable;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+
+  background: var(--bg);
+  color: var(--fg);
+
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.65;
+  font-feature-settings: 'kern', 'liga';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+main {
+  flex: 1;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ul,
+ol {
+  margin: 0;
+}
+
+ul[role='list'],
+ol[role='list'] {
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+address {
+  font-style: normal;
+}
+
+::selection {
+  background: var(--brass-300);
+  color: var(--ink-950);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-line);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+
+/* --------------------------------------------------------------------------
+   Typography
+   -------------------------------------------------------------------------- */
+
+.display,
+.h1,
+.h2,
+.h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+.display {
+  font-size: var(--step-5);
+  line-height: 1.02;
+  letter-spacing: -0.022em;
+}
+
+.h1 {
+  font-size: var(--step-4);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+}
+
+.h2 {
+  font-size: var(--step-3);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+}
+
+.h3 {
+  font-size: var(--step-2);
+  line-height: 1.22;
+  letter-spacing: -0.008em;
+}
+
+.lede {
+  font-size: var(--step-1);
+  line-height: 1.55;
+  color: var(--fg-muted);
+  text-wrap: pretty;
+  max-width: 38em;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+.muted {
+  color: var(--fg-muted);
+}
+
+/* Eyebrow label, led by a miniature dimension line. */
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.label::before {
+  content: '';
+  flex: none;
+  width: 1.75rem;
+  height: 7px;
+
+  border-inline: 1px solid var(--accent-line);
+  background: linear-gradient(var(--accent-line), var(--accent-line)) center / 100% 1px no-repeat;
+}
+
+.label--plain::before {
+  content: none;
+}
+
+/* Long-form copy. */
+
+.prose {
+  max-width: 40em;
+}
+
+.prose > * + * {
+  margin-top: 1.25em;
+}
+
+.prose p:first-child {
+  font-size: var(--step-1);
+  line-height: 1.55;
+}
+
+/* --------------------------------------------------------------------------
+   Layout
+   -------------------------------------------------------------------------- */
+
+.container {
+  width: min(100% - 2 * var(--gutter), var(--max));
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: var(--section);
+}
+
+.section--tight {
+  padding-block: calc(var(--section) * 0.62);
+}
+
+.stack > * + * {
+  margin-top: var(--stack, 1.25rem);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+
+  padding: 0.7rem 1rem;
+  background: var(--brass-400);
+  color: var(--ink-950);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius);
+
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* --------------------------------------------------------------------------
+   Buttons and links
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+
+  min-height: 3.1rem;
+  padding: 0.8rem 1.4rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+
+  transition:
+    background-color 0.25s var(--ease-out),
+    border-color 0.25s var(--ease-out),
+    color 0.25s var(--ease-out);
+}
+
+.btn:hover {
+  background: var(--btn-bg-hover);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--line-strong);
+}
+
+.btn--ghost:hover {
+  background: transparent;
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+
+.btn svg,
+.arrow-link svg {
+  flex: none;
+  width: 1.05em;
+  height: 1.05em;
+  transition: transform 0.35s var(--ease-out);
+}
+
+.btn:hover svg,
+.arrow-link:hover svg {
+  transform: translateX(0.28em);
+}
+
+.arrow-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-block: 0.3rem;
+
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  color: var(--fg);
+
+  background: linear-gradient(var(--accent-line), var(--accent-line)) 0 100% / 100% 1px no-repeat;
+  transition:
+    background-size 0.4s var(--ease-out),
+    color 0.25s var(--ease-out);
+}
+
+.arrow-link:hover {
+  color: var(--accent);
+  background-size: 0 1px;
+  background-position: 100% 100%;
+}
+
+/* Status and sample tags. */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  padding: 0.28rem 0.6rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tag::before {
+  content: '';
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.tag[data-status='ongoing'] {
+  color: var(--brass-700);
+  border-color: var(--brass-500);
+}
+
+.tag[data-status='completed'] {
+  color: var(--ink-700);
+  border-color: var(--ink-700);
+}
+
+.tag[data-status='upcoming'] {
+  color: var(--muted);
+}
+
+.tag--sample {
+  border-style: dashed;
+  color: var(--fg-muted);
+}
+
+.tag--sample::before {
+  content: none;
+}
+
+/* --------------------------------------------------------------------------
+   Motion
+   -------------------------------------------------------------------------- */
+
+/* Scroll reveal. The `js` class is set by the page script, so content stays visible without it. */
+
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(1.1rem);
+
+  transition:
+    opacity 0.9s var(--ease-out),
+    transform 0.9s var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+.js [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* A hairline that draws itself across when revealed. */
+
+.js [data-reveal='rule'] {
+  opacity: 1;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 1.2s var(--ease-in-out);
+}
+
+/* Load-in for above-the-fold content. Pure CSS, so it never waits on script. */
+
+.rise {
+  animation: rise 1s var(--ease-out) both;
+  animation-delay: calc(var(--d, 0) * 110ms + 80ms);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+}
+
+/* Cross-document page transitions: a quick, quiet crossfade. */
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: vt-out 0.16s ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: vt-in 0.34s var(--ease-out) both;
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+  }
+
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+@media print {
+  .site-header,
+  .site-footer,
+  .cta-band {
+    display: none;
+  }
+
+  .js [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}

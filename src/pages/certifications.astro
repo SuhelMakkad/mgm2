@@ -1,0 +1,182 @@
+---
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/Arrow.astro';
+import CtaBand from '../components/CtaBand.astro';
+import PageHero from '../components/PageHero.astro';
+
+import { certifications } from '../data/certifications';
+
+const crumbs = [{ label: 'Certifications', href: '/certifications/' }];
+---
+
+<Base
+  title="Certifications"
+  description="ISO certification, UAE In-Country Value (ICV) certification and other approvals held by Al Madar MGM Construction LLC, Dubai."
+  breadcrumbs={crumbs}
+>
+  <PageHero
+    label="Certifications"
+    title="Standards we are measured against."
+    lede="Independent certification gives clients, consultants and partners assurance that the way we work is checked against recognised benchmarks."
+    crumbs={crumbs}
+  />
+
+  <section class="section">
+    <div class="container">
+      <ul class="certificates" role="list">
+        {
+          certifications.map((certification, index) => (
+            <li class="certificate" id={certification.id} data-reveal style={`--i:${index}`}>
+              <span class="seal" aria-hidden="true">
+                <span>{certification.short}</span>
+              </span>
+
+              <div class="certificate__body">
+                <h2 class="h2">{certification.name}</h2>
+                <p class="lede">{certification.description}</p>
+
+                {certification.details.length > 0 && (
+                  <dl class="certificate__details">
+                    {certification.details.map((detail) => (
+                      <div>
+                        <dt>{detail.label}</dt>
+                        <dd>{detail.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+
+                {certification.document ? (
+                  <a class="arrow-link" href={certification.document}>
+                    View certificate
+                    <Arrow />
+                  </a>
+                ) : (
+                  <a class="arrow-link" href="/contact/">
+                    Request a copy
+                    <Arrow />
+                  </a>
+                )}
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="section principle theme-dark">
+    <div class="container principle__inner">
+      <p class="label" data-reveal>How we build</p>
+
+      <blockquote class="principle__text" data-reveal style="--i:1">
+        <p>
+          We firmly believe that successful construction is measured not only by the quality of what we build, but also by how responsibly we build it.
+        </p>
+      </blockquote>
+    </div>
+  </section>
+
+  <CtaBand title="Prequalifying us for a tender?" text="We can supply certificates, registrations and supporting documents for your prequalification file." />
+</Base>
+
+<style>
+  .certificates {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .certificate {
+    display: grid;
+    gap: 1.75rem;
+    align-items: start;
+    padding-block: clamp(2.5rem, 5vw, 4rem);
+    border-bottom: 1px solid var(--line);
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+
+  /* A certification seal: two concentric rings around the short name. */
+
+  .seal {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 6.5rem;
+    height: 6.5rem;
+    border: 1px solid var(--accent-line);
+    border-radius: 50%;
+
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--accent);
+  }
+
+  .seal::before {
+    content: '';
+    position: absolute;
+    inset: 0.4rem;
+    border: 1px dashed var(--accent-line);
+    border-radius: 50%;
+    opacity: 0.7;
+    transition: transform 1.4s var(--ease-out);
+  }
+
+  .certificate:hover .seal::before {
+    transform: rotate(60deg);
+  }
+
+  .certificate__body {
+    display: grid;
+    justify-items: start;
+    gap: 1.25rem;
+  }
+
+  .certificate__details {
+    display: grid;
+    width: 100%;
+    max-width: 34rem;
+    margin: 0.5rem 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .certificate__details div {
+    display: grid;
+    grid-template-columns: 10rem minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 0.8rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9375rem;
+  }
+
+  .certificate__details dt {
+    color: var(--fg-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .certificate {
+      grid-template-columns: 11rem minmax(0, 1fr);
+      gap: clamp(2rem, 5vw, 5rem);
+    }
+  }
+
+  /* Principle */
+
+  .principle__inner {
+    display: grid;
+    justify-items: start;
+    gap: 2rem;
+  }
+
+  .principle__text {
+    max-width: 24em;
+
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 400;
+    line-height: 1.24;
+    letter-spacing: -0.012em;
+  }
+</style>

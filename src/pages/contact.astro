@@ -1,0 +1,593 @@
+---
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/Arrow.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionHead from '../components/SectionHead.astro';
+
+import { site, contact } from '../data/site';
+import { serviceGroups } from '../data/services';
+
+const crumbs = [{ label: 'Contact us', href: '/contact/' }];
+
+const enquiryTypes = [
+  { value: 'project', label: 'Project enquiry (client or consultant)' },
+  { value: 'subcontractor', label: 'Subcontractor registration' },
+  { value: 'supplier', label: 'Supplier registration' },
+  { value: 'careers', label: 'Careers' },
+  { value: 'general', label: 'General enquiry' },
+];
+
+const registrationSteps = [
+  { title: 'Send the form', text: 'Choose "Subcontractor registration" or "Supplier registration" and tell us about your company and trade.' },
+  { title: 'We review your details', text: 'Our procurement team checks the enquiry against current and upcoming requirements.' },
+  { title: 'Receive your registration link', text: 'On successful review we email you a link to complete registration as an approved vendor.' },
+];
+
+const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : '';
+---
+
+<Base
+  title="Contact Us"
+  description="Contact Al Madar MGM Construction LLC in Dubai for project enquiries, subcontractor and supplier registration, and careers."
+  breadcrumbs={crumbs}
+  schema={[{ '@type': 'ContactPage', name: `Contact ${site.name}`, url: new URL('/contact/', Astro.site).href }]}
+>
+  <PageHero
+    label="Contact us"
+    title="Tell us what you are building."
+    lede="Clients, consultants, subcontractors, suppliers and future colleagues: this is the place to start."
+    crumbs={crumbs}
+  />
+
+  <section class="section">
+    <div class="container contact">
+      <div class="contact__form">
+        <SectionHead label="Enquiries" title="Send us a message." />
+
+        <form class="form" method="post" action={contact.formEndpoint || undefined} data-form data-email={contact.email} novalidate>
+          <div class="field field--full">
+            <label for="type">I am getting in touch about</label>
+
+            <select id="type" name="type" required>
+              {enquiryTypes.map((type) => <option value={type.value}>{type.label}</option>)}
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required />
+          </div>
+
+          <div class="field">
+            <label for="company">Company</label>
+            <input id="company" name="company" type="text" autocomplete="organization" />
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </div>
+
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel" />
+          </div>
+
+          <div class="field field--full" data-vendor-field hidden>
+            <label for="trade">Trade or product category</label>
+            <input id="trade" name="trade" type="text" list="trades" placeholder="e.g. MEP, joinery, ready-mix concrete" />
+
+            <datalist id="trades">
+              {serviceGroups.flatMap((group) => group.services).map((service) => <option value={service.name} />)}
+            </datalist>
+          </div>
+
+          <div class="field field--full">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="6" required></textarea>
+          </div>
+
+          {/* Honeypot: hidden from people, tempting to bots. */}
+          <div class="visually-hidden" aria-hidden="true">
+            <label for="website">Leave this field empty</label>
+            <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <div class="form__foot field--full">
+            <button class="btn" type="submit">
+              Send enquiry
+              <Arrow />
+            </button>
+
+            <p class="form__hint" data-vendor-field hidden>Once your details are reviewed, we will email you a registration link.</p>
+          </div>
+
+          <p class="form__status field--full" role="status" aria-live="polite" data-status hidden></p>
+        </form>
+      </div>
+
+      <aside class="contact__aside" data-reveal>
+        <div class="card">
+          <h2 class="card__title">Direct</h2>
+
+          <dl class="card__list">
+            <div>
+              <dt>Email</dt>
+
+              <dd>
+                <a href={`mailto:${contact.email}`}>{contact.email}</a>
+              </dd>
+            </div>
+
+            {
+              contact.phone && (
+                <div>
+                  <dt>Phone</dt>
+
+                  <dd>
+                    <a href={telHref}>{contact.phone}</a>
+                  </dd>
+                </div>
+              )
+            }
+
+            <div>
+              <dt>Hours</dt>
+              <dd>{contact.hours}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="card" id="locations">
+          <h2 class="card__title">{contact.locations.length > 1 ? 'Locations' : 'Location'}</h2>
+
+          {
+            contact.locations.map((location) => (
+              <address class="location">
+                <strong>{location.name}</strong>
+                {location.lines.map((line) => <span>{line}</span>)}
+
+                <a class="arrow-link" href={location.mapUrl} target="_blank" rel="noopener">
+                  Open in Maps
+                  <Arrow />
+                </a>
+              </address>
+            ))
+          }
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section theme-tint" id="register">
+    <div class="container register">
+      <SectionHead
+        label="Subcontractors & suppliers"
+        title="Register to work with us."
+        lede="We keep a register of approved subcontractors and suppliers. Registration starts with the contact form above."
+      >
+        <a class="arrow-link" href="#type" data-preset="subcontractor">
+          Start registration
+          <Arrow />
+        </a>
+      </SectionHead>
+
+      <ol class="process" role="list">
+        {
+          registrationSteps.map((step, index) => (
+            <li data-reveal style={`--i:${index}`}>
+              <span class="process__number" aria-hidden="true">
+                {index + 1}
+              </span>
+
+              <div>
+                <h3 class="h3">{step.title}</h3>
+                <p class="muted">{step.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section theme-dark" id="careers">
+    <div class="container careers">
+      <SectionHead
+        label="Careers"
+        title="Build your career where experience is valued."
+        lede="Our greatest strength lies in our people. Several of our team have been with us for decades, and we are always glad to hear from engineers, supervisors, craftsmen and professionals who share our standards."
+      />
+
+      <div class="careers__actions" data-reveal>
+        <p>Send your CV and a short note about the role you are looking for.</p>
+
+        <div class="careers__buttons">
+          <a class="btn" href={`mailto:${contact.careersEmail}?subject=${encodeURIComponent('Career enquiry')}`}>
+            Email your CV
+            <Arrow />
+          </a>
+
+          <a class="btn btn--ghost" href="#type" data-preset="careers">Use the contact form</a>
+        </div>
+
+        <p class="muted careers__email">{contact.careersEmail}</p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  /**
+   * Contact form. Shows the vendor fields for subcontractor and supplier enquiries,
+   * then submits to the configured endpoint, or opens a pre-filled email when none is set.
+   */
+
+  const form = document.querySelector<HTMLFormElement>('[data-form]');
+
+  if (form) {
+    const type = form.querySelector<HTMLSelectElement>('#type')!;
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+
+    const vendorFields = [...form.querySelectorAll<HTMLElement>('[data-vendor-field]')];
+    const vendorTypes = new Set(['subcontractor', 'supplier']);
+
+    const syncVendorFields = () => {
+      const isVendor = vendorTypes.has(type.value);
+
+      vendorFields.forEach((field) => (field.hidden = !isVendor));
+    };
+
+    const say = (message: string, tone: 'ok' | 'error') => {
+      status.textContent = message;
+      status.dataset.tone = tone;
+      status.hidden = false;
+    };
+
+    // Links elsewhere on the page can preselect an enquiry type.
+    for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-preset]')) {
+      link.addEventListener('click', () => {
+        type.value = link.dataset.preset ?? type.value;
+        syncVendorFields();
+      });
+    }
+
+    // So can the URL, e.g. /contact/?type=supplier.
+    const preset = new URLSearchParams(location.search).get('type');
+
+    if (preset && [...type.options].some((option) => option.value === preset)) type.value = preset;
+
+    type.addEventListener('change', syncVendorFields);
+    syncVendorFields();
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const data = new FormData(form);
+
+      // A filled honeypot means a bot. Pretend it worked.
+      if (data.get('website')) {
+        form.reset();
+        return;
+      }
+
+      data.delete('website');
+
+      const isVendor = vendorTypes.has(type.value);
+      const endpoint = form.getAttribute('action');
+
+      if (!endpoint) {
+        const lines = [...data.entries()].filter(([, value]) => value).map(([key, value]) => `${key}: ${value}`);
+        const subject = `Website enquiry: ${type.selectedOptions[0].textContent}`;
+
+        location.href = `mailto:${form.dataset.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`;
+
+        say('Your email app should now open with your enquiry ready to send.', 'ok');
+        return;
+      }
+
+      submit.disabled = true;
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          body: data,
+          headers: { Accept: 'application/json' },
+        });
+
+        if (!response.ok) throw new Error(`Request failed with ${response.status}`);
+
+        form.reset();
+        syncVendorFields();
+
+        say(
+          isVendor
+            ? 'Thank you. Your enquiry has been received, and a registration link will follow by email once it has been reviewed.'
+            : 'Thank you. Your enquiry has been received and we will be in touch shortly.',
+          'ok',
+        );
+      } catch {
+        say(`Sorry, your enquiry could not be sent. Please email us at ${form.dataset.email} instead.`, 'error');
+      } finally {
+        submit.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .contact {
+    display: grid;
+    gap: 3.5rem;
+    align-items: start;
+  }
+
+  .contact__form {
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  /* Form */
+
+  .form {
+    display: grid;
+    gap: 1.5rem 1.25rem;
+  }
+
+  .field {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .field[hidden],
+  .form [hidden] {
+    display: none;
+  }
+
+  .field label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    min-height: 3.1rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+
+    background: var(--surface);
+    transition:
+      border-color 0.25s var(--ease-out),
+      box-shadow 0.25s var(--ease-out);
+  }
+
+  .field textarea {
+    resize: vertical;
+    line-height: 1.55;
+  }
+
+  .field select {
+    appearance: none;
+    padding-right: 2.6rem;
+    background: var(--surface)
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23132127' stroke-width='1.5'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E")
+      no-repeat right 1rem center / 0.75rem;
+  }
+
+  .field input::placeholder {
+    color: var(--muted);
+    opacity: 0.75;
+  }
+
+  .field :is(input, select, textarea):hover {
+    border-color: var(--ink-700);
+  }
+
+  .field :is(input, select, textarea):focus-visible {
+    outline: none;
+    border-color: var(--brass-500);
+    box-shadow: 0 0 0 3px rgb(176 138 69 / 0.22);
+  }
+
+  .form__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+  }
+
+  .form__hint {
+    font-size: 0.875rem;
+    color: var(--fg-muted);
+  }
+
+  .form__status {
+    padding: 1rem 1.1rem;
+    border-left: 2px solid var(--ink-700);
+    background: var(--paper-2);
+    font-size: 0.9375rem;
+  }
+
+  .form__status[data-tone='error'] {
+    border-left-color: #a23b2a;
+  }
+
+  .form :global(button:disabled) {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  @media (min-width: 40rem) {
+    .form {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .field--full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* Aside */
+
+  .contact__aside {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .card {
+    display: grid;
+    gap: 1.25rem;
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    scroll-margin-top: calc(var(--header-h) + 1.5rem);
+  }
+
+  .card__title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .card__list {
+    display: grid;
+    margin: 0;
+  }
+
+  .card__list div {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 0.75rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.9375rem;
+  }
+
+  .card__list dt {
+    color: var(--fg-muted);
+  }
+
+  .card__list a {
+    text-decoration-color: var(--accent-line);
+    overflow-wrap: anywhere;
+  }
+
+  .location {
+    display: grid;
+    justify-items: start;
+    gap: 0.15rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .location strong {
+    margin-bottom: 0.3rem;
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 500;
+  }
+
+  .location span {
+    color: var(--fg-muted);
+  }
+
+  .location .arrow-link {
+    margin-top: 1rem;
+  }
+
+  @media (min-width: 64rem) {
+    .contact {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+      gap: clamp(3rem, 6vw, 6rem);
+    }
+
+    .contact__aside {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+    }
+  }
+
+  /* Registration process */
+
+  .register,
+  .careers {
+    display: grid;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .process {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .process li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+    padding-block: 1.75rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .process li div {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .process__number {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid var(--accent-line);
+    border-radius: 50%;
+
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* Careers */
+
+  .careers__actions {
+    display: grid;
+    gap: 1.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--line-strong);
+    font-size: var(--step-1);
+  }
+
+  .careers__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .careers__email {
+    font-size: 0.9375rem;
+  }
+
+  @media (min-width: 60rem) {
+    .register,
+    .careers {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: clamp(3rem, 7vw, 7rem);
+    }
+  }
+</style>

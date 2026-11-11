@@ -1,0 +1,138 @@
+---
+import Arrow from './Arrow.astro';
+
+interface Props {
+  title?: string;
+  text?: string;
+}
+
+const {
+  title = 'Have a project in mind?',
+  text = 'Tell us what you are planning. Whether it is a new build, a refurbishment or a specialist finish, we will put the right people on it.',
+} = Astro.props;
+---
+
+<section class="cta-band theme-dark">
+  <div class="container cta-band__inner">
+    <div class="cta-band__copy" data-reveal>
+      <p class="label">Work with us</p>
+      <h2 class="h2">{title}</h2>
+      <p class="lede">{text}</p>
+    </div>
+
+    <ul class="cta-band__actions" role="list">
+      <li data-reveal style="--i:1">
+        <a class="cta-band__action" href="/contact/">
+          <span>
+            <strong>Discuss a project</strong>
+            <small>Clients and consultants</small>
+          </span>
+
+          <Arrow />
+        </a>
+      </li>
+
+      <li data-reveal style="--i:2">
+        <a class="cta-band__action" href="/contact/#register">
+          <span>
+            <strong>Register with us</strong>
+            <small>Subcontractors and suppliers</small>
+          </span>
+
+          <Arrow />
+        </a>
+      </li>
+
+      <li data-reveal style="--i:3">
+        <a class="cta-band__action" href="/contact/#careers">
+          <span>
+            <strong>Join the team</strong>
+            <small>Careers at Al Madar</small>
+          </span>
+
+          <Arrow />
+        </a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .cta-band {
+    --bg: var(--ink-800);
+    background: var(--bg);
+    padding-block: clamp(4rem, 2.5rem + 6vw, 7.5rem);
+  }
+
+  .cta-band__inner {
+    display: grid;
+    gap: 3rem;
+  }
+
+  .cta-band__copy {
+    display: grid;
+    justify-items: start;
+    gap: 1.25rem;
+  }
+
+  .cta-band__actions {
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .cta-band__action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.4rem 0.25rem;
+    border-bottom: 1px solid var(--line);
+
+    text-decoration: none;
+    transition:
+      padding 0.45s var(--ease-out),
+      border-color 0.3s;
+  }
+
+  .cta-band__action span {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .cta-band__action strong {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .cta-band__action small {
+    font-size: 0.875rem;
+    color: var(--fg-muted);
+  }
+
+  .cta-band__action :global(svg) {
+    flex: none;
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--accent);
+    transition: transform 0.45s var(--ease-out);
+  }
+
+  .cta-band__action:hover {
+    padding-inline: 1rem 0.25rem;
+    border-bottom-color: var(--accent-line);
+  }
+
+  .cta-band__action:hover :global(svg) {
+    transform: translateX(0.4rem);
+  }
+
+  @media (min-width: 60rem) {
+    .cta-band__inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: clamp(3rem, 7vw, 7rem);
+      align-items: center;
+    }
+  }
+</style>

@@ -1,0 +1,129 @@
+---
+import Base from '../layouts/Base.astro';
+import CtaBand from '../components/CtaBand.astro';
+import PageHero from '../components/PageHero.astro';
+import SectorIcon from '../components/SectorIcon.astro';
+
+import { sectors } from '../data/sectors';
+import { getProjects } from '../data/projects';
+
+const projects = await getProjects();
+
+const projectCount = (sectorId: string) => projects.filter((project) => project.data.sector === sectorId).length;
+
+const crumbs = [{ label: 'Sectors', href: '/sectors/' }];
+---
+
+<Base
+  title="Sectors We Serve"
+  description={`${sectors.length} sectors served across the UAE, from infrastructure, healthcare and fuel facilities to palatial villas, hospitality and houses of worship.`}
+  breadcrumbs={crumbs}
+>
+  <PageHero
+    label="Sectors"
+    title={`${sectors.length} sectors. One standard of work.`}
+    lede="Each sector brings its own rules, risks and expectations. Nearly five decades of practice in the UAE have taught us to respect all of them."
+    crumbs={crumbs}
+  />
+
+  <section class="section">
+    <div class="container">
+      <ul class="sectors" role="list">
+        {
+          sectors.map((sector, index) => (
+            <li class="sector" id={sector.id} data-reveal style={`--i:${index % 3}`}>
+              <SectorIcon icon={sector.icon} />
+
+              <div class="sector__body">
+                <h2 class="h3">{sector.name}</h2>
+                <p class="muted">{sector.description}</p>
+
+                {projectCount(sector.id) > 0 && (
+                  <a class="sector__link" href={`/projects/?sector=${sector.id}`}>
+                    View projects
+                  </a>
+                )}
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand title="Working in one of these sectors?" text="Tell us about the project and the environment it sits in. We will bring the people who know it." />
+</Base>
+
+<style>
+  .sectors {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .sector {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--line);
+
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+    transition: background-color 0.5s var(--ease-out);
+  }
+
+  .sector :global(.sector-icon) {
+    color: var(--ink-700);
+    transition:
+      transform 0.6s var(--ease-out),
+      color 0.4s var(--ease-out);
+  }
+
+  .sector:hover :global(.sector-icon) {
+    color: var(--accent);
+    transform: translateY(-0.25rem);
+  }
+
+  /* Arriving from a link on another page: mark the sector that was asked for. */
+
+  .sector:target {
+    background: var(--paper-2);
+    box-shadow: -1rem 0 0 var(--paper-2), 1rem 0 0 var(--paper-2);
+  }
+
+  .sector:target :global(.sector-icon) {
+    color: var(--accent);
+  }
+
+  .sector__body {
+    display: grid;
+    gap: 0.5rem;
+    justify-items: start;
+  }
+
+  .sector__link {
+    margin-top: 0.35rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration-color: var(--accent-line);
+  }
+
+  .sector__link:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  @media (min-width: 44rem) {
+    .sectors {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: clamp(2rem, 5vw, 4.5rem);
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .sectors {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

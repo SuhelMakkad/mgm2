@@ -1,0 +1,448 @@
+---
+import Base from '../../layouts/Base.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import PageHero from '../../components/PageHero.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+
+import { sectorById } from '../../data/sectors';
+import { getProjects, statusLabels, statusOrder } from '../../data/projects';
+
+const projects = await getProjects();
+
+const statusCounts = statusOrder.map((status) => ({
+  status,
+  label: statusLabels[status],
+  count: projects.filter((project) => project.data.status === status).length,
+}));
+
+// Only offer the categories that actually have projects.
+const categories = [...new Set(projects.map((project) => project.data.sector))]
+  .map((id) => sectorById.get(id))
+  .filter((sector) => sector !== undefined)
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const crumbs = [{ label: 'Projects', href: '/projects/' }];
+---
+
+<Base
+  title="Projects"
+  description="Ongoing, completed and upcoming construction projects by Al Madar MGM Construction LLC across Dubai and the UAE, by sector."
+  breadcrumbs={crumbs}
+>
+  <PageHero
+    label="Projects"
+    title="Work in progress, work delivered."
+    lede="Our ongoing, completed and soon-to-commence projects. Filter by status or category, or switch to the list for the full register."
+    crumbs={crumbs}
+  />
+
+  <section class="section" data-projects>
+    <div class="container">
+      <form class="filters" data-reveal>
+        <fieldset class="filters__group">
+          <legend class="visually-hidden">Filter by status</legend>
+
+          <label class="chip">
+            <input type="radio" name="status" value="all" checked />
+            <span>All</span>
+            <small>{projects.length}</small>
+          </label>
+
+          {
+            statusCounts.map((item) => (
+              <label class="chip">
+                <input type="radio" name="status" value={item.status} />
+                <span>{item.label}</span>
+                <small>{item.count}</small>
+              </label>
+            ))
+          }
+        </fieldset>
+
+        <div class="filters__side">
+          <label class="select">
+            <span class="visually-hidden">Filter by category</span>
+
+            <select name="sector">
+              <option value="all">All categories</option>
+              {categories.map((sector) => <option value={sector.id}>{sector.name}</option>)}
+            </select>
+          </label>
+
+          <fieldset class="view">
+            <legend class="visually-hidden">View</legend>
+
+            <label>
+              <input type="radio" name="view" value="gallery" checked />
+              <span>Gallery</span>
+            </label>
+
+            <label>
+              <input type="radio" name="view" value="list" />
+              <span>List</span>
+            </label>
+          </fieldset>
+        </div>
+      </form>
+
+      <p class="results" aria-live="polite" data-results></p>
+
+      <ul class="gallery" role="list" data-view="gallery">
+        {
+          projects.map((project, index) => (
+            <li data-item data-status={project.data.status} data-sector={project.data.sector} data-reveal style={`--i:${index % 3}`}>
+              <ProjectCard project={project} eager={index < 3} heading="h2" />
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="register" data-view="list" hidden>
+        <table>
+          <caption class="visually-hidden">Project register</caption>
+
+          <thead>
+            <tr>
+              <th scope="col">Project</th>
+              <th scope="col">Category</th>
+              <th scope="col">Location</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {
+              projects.map((project) => (
+                <tr data-item data-status={project.data.status} data-sector={project.data.sector}>
+                  <th scope="row">
+                    <a href={`/projects/${project.id}/`}>{project.data.title}</a>
+                    {project.data.sample && <span class="tag tag--sample">Sample</span>}
+                  </th>
+
+                  <td>{sectorById.get(project.data.sector)?.name}</td>
+                  <td>{project.data.location}</td>
+
+                  <td>
+                    <span class="tag" data-status={project.data.status}>
+                      {statusLabels[project.data.status]}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <p class="empty" data-empty hidden>No projects match these filters yet.</p>
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<script>
+  /**
+   * Project filters. Without script every project is listed in the gallery;
+   * with it, status, category and view are filtered in place and kept in the URL.
+   */
+
+  const scope = document.querySelector<HTMLElement>('[data-projects]');
+  const form = scope?.querySelector<HTMLFormElement>('form');
+
+  if (scope && form) {
+    const items = [...scope.querySelectorAll<HTMLElement>('[data-item]')];
+    const views = [...scope.querySelectorAll<HTMLElement>('[data-view]')];
+
+    const results = scope.querySelector<HTMLElement>('[data-results]');
+    const empty = scope.querySelector<HTMLElement>('[data-empty]');
+
+    const read = () => {
+      const data = new FormData(form);
+
+      return {
+        status: String(data.get('status') ?? 'all'),
+        sector: String(data.get('sector') ?? 'all'),
+        view: String(data.get('view') ?? 'gallery'),
+      };
+    };
+
+    const apply = () => {
+      const state = read();
+      let visible = 0;
+
+      for (const item of items) {
+        const matches =
+          (state.status === 'all' || item.dataset.status === state.status) && (state.sector === 'all' || item.dataset.sector === state.sector);
+
+        item.hidden = !matches;
+
+        // Each project appears once per view, so count the gallery copy only.
+        if (matches && item.closest('[data-view="gallery"]')) visible += 1;
+      }
+
+      for (const view of views) {
+        view.hidden = view.dataset.view !== state.view || visible === 0;
+      }
+
+      if (empty) empty.hidden = visible > 0;
+      if (results) results.textContent = `Showing ${visible} of ${items.length / views.length} projects`;
+
+      const params = new URLSearchParams();
+
+      for (const [key, value] of Object.entries(state)) {
+        if (value !== 'all' && value !== 'gallery') params.set(key, value);
+      }
+
+      const query = params.toString();
+      history.replaceState(null, '', query ? `?${query}` : location.pathname);
+    };
+
+    // Restore filters from the URL, e.g. /projects/?sector=parks from the sectors page.
+    const params = new URLSearchParams(location.search);
+
+    for (const [key, value] of params) {
+      const field = form.elements.namedItem(key);
+
+      if (field instanceof RadioNodeList || field instanceof HTMLSelectElement) field.value = value;
+    }
+
+    form.addEventListener('change', apply);
+    form.addEventListener('submit', (event) => event.preventDefault());
+
+    apply();
+  }
+</script>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .filters fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .filters__group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .filters__side {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* Status chips */
+
+  .chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.6rem;
+    padding: 0.5rem 0.95rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      background-color 0.3s var(--ease-out),
+      border-color 0.3s var(--ease-out),
+      color 0.3s var(--ease-out);
+  }
+
+  .chip input,
+  .view input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .chip small {
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg-muted);
+    transition: color 0.3s var(--ease-out);
+  }
+
+  .chip:hover {
+    border-color: var(--accent-line);
+  }
+
+  .chip:has(input:checked) {
+    background: var(--ink-900);
+    border-color: var(--ink-900);
+    color: var(--on-dark);
+  }
+
+  .chip:has(input:checked) small {
+    color: var(--brass-300);
+  }
+
+  .chip:has(input:focus-visible),
+  .view label:has(input:focus-visible) {
+    outline: 2px solid var(--accent-line);
+    outline-offset: 3px;
+  }
+
+  /* Category select */
+
+  .select select {
+    min-height: 2.6rem;
+    padding: 0.5rem 2.4rem 0.5rem 0.95rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    appearance: none;
+
+    background: transparent
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23132127' stroke-width='1.5'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E")
+      no-repeat right 0.9rem center / 0.7rem;
+
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  /* View switch */
+
+  .view {
+    display: inline-flex;
+    border: 1px solid var(--line-strong) !important;
+    border-radius: var(--radius);
+  }
+
+  .view label {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: calc(2.6rem - 2px);
+    padding: 0 0.9rem;
+
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      background-color 0.3s var(--ease-out),
+      color 0.3s var(--ease-out);
+  }
+
+  .view label:has(input:checked) {
+    background: var(--ink-900);
+    color: var(--on-dark);
+  }
+
+  .results {
+    min-height: 1.5rem;
+    margin-block: 1.25rem clamp(2rem, 4vw, 3rem);
+
+    font-size: 0.875rem;
+    color: var(--fg-muted);
+  }
+
+  /* Gallery */
+
+  .gallery {
+    display: grid;
+    gap: 3.5rem 2rem;
+    margin: 0;
+  }
+
+  .gallery[hidden],
+  .gallery [hidden] {
+    display: none;
+  }
+
+  @media (min-width: 40rem) {
+    .gallery {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .gallery {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* Register (list view) */
+
+  .register {
+    overflow-x: auto;
+  }
+
+  .register table {
+    width: 100%;
+    min-width: 40rem;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .register thead th {
+    padding: 0 1rem 0.9rem 0;
+    border-bottom: 1px solid var(--line-strong);
+
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .register tbody th,
+  .register tbody td {
+    padding: 1.25rem 1rem 1.25rem 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9375rem;
+    vertical-align: middle;
+  }
+
+  .register tbody th {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 500;
+  }
+
+  .register tbody th a {
+    margin-right: 0.75rem;
+    text-decoration: none;
+    background: linear-gradient(var(--accent-line), var(--accent-line)) 0 100% / 0 1px no-repeat;
+    transition: background-size 0.5s var(--ease-out);
+  }
+
+  .register tbody th a:hover {
+    background-size: 100% 1px;
+  }
+
+  .register tbody td {
+    color: var(--fg-muted);
+  }
+
+  .register tbody tr {
+    transition: background-color 0.3s var(--ease-out);
+  }
+
+  .register tbody tr:hover {
+    background: var(--paper-2);
+  }
+
+  .empty {
+    padding-block: 3rem;
+    font-size: var(--step-1);
+    color: var(--fg-muted);
+  }
+</style>

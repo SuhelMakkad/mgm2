@@ -1,0 +1,62 @@
+---
+/** Quiet background ornament for dark bands: concentric orbits with one slow-moving body. */
+---
+
+<svg class="ornament" viewBox="0 0 600 600" fill="none" aria-hidden="true">
+  <circle cx="300" cy="300" r="120"></circle>
+  <circle cx="300" cy="300" r="205"></circle>
+  <circle cx="300" cy="300" r="295"></circle>
+
+  <g class="ornament__body">
+    <circle cx="300" cy="95" r="4"></circle>
+  </g>
+</svg>
+
+<style>
+  /* Anchored by its centre to the bottom-right corner, and faded out towards the copy. */
+
+  .ornament {
+    --size: min(40rem, 110vw);
+
+    position: absolute;
+    right: calc(var(--size) / -2 + 6rem);
+    bottom: calc(var(--size) / -2);
+    width: var(--size);
+    max-width: none;
+    pointer-events: none;
+
+    mask-image: radial-gradient(closest-side, #000 55%, transparent 100%);
+  }
+
+  .ornament > circle {
+    stroke: rgb(200 163 95 / 0.2);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .ornament__body {
+    transform-origin: 300px 300px;
+    animation: ornament-orbit 90s linear infinite;
+  }
+
+  .ornament__body circle {
+    fill: var(--brass-400);
+  }
+
+  @keyframes ornament-orbit {
+    from {
+      transform: rotate(-70deg);
+    }
+
+    to {
+      transform: rotate(290deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ornament__body {
+      animation: none;
+      transform: rotate(-40deg);
+    }
+  }
+</style>

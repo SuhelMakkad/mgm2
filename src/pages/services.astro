@@ -1,0 +1,219 @@
+---
+import Base from '../layouts/Base.astro';
+import CtaBand from '../components/CtaBand.astro';
+import PageHero from '../components/PageHero.astro';
+
+import { site } from '../data/site';
+import { serviceGroups, serviceCount } from '../data/services';
+
+const crumbs = [{ label: 'Services', href: '/services/' }];
+
+const catalogue = {
+  '@type': 'OfferCatalog',
+  name: `${site.name} services`,
+  itemListElement: serviceGroups.map((group) => ({
+    '@type': 'OfferCatalog',
+    name: group.title,
+    itemListElement: group.services.map((service) => ({
+      '@type': 'Offer',
+      itemOffered: { '@type': 'Service', name: service.name, description: service.description },
+    })),
+  })),
+};
+---
+
+<Base
+  title="Construction Services in Dubai, UAE"
+  description={`${serviceCount} services from one Dubai contractor: civil construction, building contracting, MEP, design and build, fit-out, maintenance and specialist finishes.`}
+  breadcrumbs={crumbs}
+  schema={[catalogue]}
+>
+  <PageHero
+    label="Services"
+    title="One contractor, from foundations to gold leaf."
+    lede={`${serviceCount} services across four disciplines. The company began in coatings, grew into maintenance and then into full construction, and it still practises all three.`}
+    crumbs={crumbs}
+  >
+    <ul class="index" role="list">
+      {
+        serviceGroups.map((group) => (
+          <li>
+            <a href={`#${group.id}`}>
+              <span class="index__letter" aria-hidden="true">
+                {group.letter}
+              </span>
+
+              {group.title}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </PageHero>
+
+  {
+    serviceGroups.map((group, groupIndex) => (
+      <section class:list={['section group', { 'theme-tint': groupIndex % 2 === 1 }]} id={group.id}>
+        <div class="container group__inner">
+          <header class="group__head" data-reveal>
+            <span class="group__bubble" aria-hidden="true">
+              {group.letter}
+            </span>
+
+            <h2 class="h2">{group.title}</h2>
+            <p class="lede">{group.summary}</p>
+            <p class="group__count">{group.services.length} services</p>
+          </header>
+
+          <ul class="services" role="list">
+            {group.services.map((service, index) => (
+              <li class="service" data-reveal style={`--i:${Math.min(index, 5)}`}>
+                <h3 class="h3">{service.name}</h3>
+                <p class="muted">{service.description}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    ))
+  }
+
+  <CtaBand title="Need something that is not on the list?" text="Many of our projects start with an unusual brief. Tell us what you need and we will tell you how we would approach it." />
+</Base>
+
+<style>
+  .index {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0.75rem 0 0;
+  }
+
+  .index a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-block: 0.25rem;
+
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.25s;
+  }
+
+  .index__letter {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border: 1px solid var(--accent-line);
+    border-radius: 50%;
+
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    transition:
+      background-color 0.3s var(--ease-out),
+      color 0.3s var(--ease-out);
+  }
+
+  .index a:hover {
+    color: var(--accent);
+  }
+
+  .index a:hover .index__letter {
+    background: var(--brass-400);
+    color: var(--ink-950);
+  }
+
+  @media (min-width: 40rem) {
+    .index {
+      grid-template-columns: repeat(2, auto);
+      justify-content: start;
+      gap: 0.6rem 2.5rem;
+    }
+  }
+
+  /* One discipline */
+
+  .group__inner {
+    display: grid;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  .group__head {
+    display: grid;
+    justify-items: start;
+    gap: 1.25rem;
+  }
+
+  .group__bubble {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border: 1px solid var(--accent-line);
+    border-radius: 50%;
+
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .group__count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .services {
+    margin: 0;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .service {
+    position: relative;
+    display: grid;
+    gap: 0.5rem;
+    padding: 1.6rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .service::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 -1px 0;
+    height: 1px;
+
+    background: var(--accent-line);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.6s var(--ease-out);
+  }
+
+  .service:hover::after {
+    transform: scaleX(1);
+  }
+
+  @media (min-width: 48rem) {
+    .service {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 2rem;
+      align-items: baseline;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .group__inner {
+      grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+      gap: clamp(3rem, 7vw, 7rem);
+    }
+
+    .group__head {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+    }
+  }
+</style>

@@ -1,0 +1,99 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+import Plate from './Plate.astro';
+import { sectorById, drawings } from '../data/sectors';
+import { statusLabels } from '../data/projects';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  eager?: boolean;
+
+  /** Heading element for the title, so the card fits the outline of the page it is on. */
+  heading?: 'h2' | 'h3';
+}
+
+const { project, eager = false, heading: Heading = 'h3' } = Astro.props;
+const { title, summary, status, location, image, imageAlt, sample } = project.data;
+
+const sector = sectorById.get(project.data.sector);
+---
+
+<article class="project-card" data-status={status} data-sector={project.data.sector}>
+  <a class="project-card__link" href={`/projects/${project.id}/`}>
+    <Plate drawing={sector?.icon ?? drawings.crane} image={image} alt={imageAlt ?? title} eager={eager} />
+
+    <div class="project-card__body">
+      <p class="project-card__tags">
+        <span class="tag" data-status={status}>{statusLabels[status]}</span>
+        {sample && <span class="tag tag--sample">Sample</span>}
+      </p>
+
+      <Heading class="h3">{title}</Heading>
+      <p class="muted">{summary}</p>
+
+      <p class="project-card__foot">
+        <span>{sector?.name}</span>
+        <span>{location}</span>
+      </p>
+    </div>
+  </a>
+</article>
+
+<style>
+  .project-card__link {
+    display: grid;
+    gap: 1.4rem;
+    height: 100%;
+    align-content: start;
+
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .project-card__body {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: start;
+  }
+
+  .project-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .project-card .h3 {
+    background: linear-gradient(var(--accent-line), var(--accent-line)) 0 100% / 0 1px no-repeat;
+    transition: background-size 0.5s var(--ease-out);
+  }
+
+  .project-card__link:hover .h3 {
+    background-size: 100% 1px;
+  }
+
+  .project-card .muted {
+    font-size: 0.9688rem;
+  }
+
+  .project-card__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 0.9rem;
+    margin-top: 0.25rem;
+
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--fg-muted);
+  }
+
+  .project-card__foot span + span::before {
+    content: '';
+    display: inline-block;
+    width: 1px;
+    height: 0.8em;
+    margin-right: 0.9rem;
+    vertical-align: -0.05em;
+    background: var(--line-strong);
+  }
+</style>
