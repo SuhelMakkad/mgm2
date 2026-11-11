@@ -1,0 +1,902 @@
+---
+/**
+ * A scroll-driven 3D section: a building assembles in four stages as the page scrolls.
+ *
+ * By default it is an ordinary section: a still picture beside the four stages. The script
+ * upgrades it to the pinned, live version only when that is safe (motion allowed, no data
+ * saver, WebGL2, a tall enough window), loads three.js as the section approaches, and falls
+ * back to the still version again if anything fails or the visitor asks for it.
+ */
+import Icon from './Icon.astro';
+import Media from './Media.astro';
+import { image } from '../data/images';
+import { buildStages, BUILD_END } from '../data/build-stages';
+import { serviceGroups } from '../data/services';
+
+interface Props {
+  /** Unique per page. The skip link targets `<id>-end`, just after the section. */
+  id?: string;
+
+  label?: string;
+  title?: string;
+
+  /** File name in src/assets/images shown when the 3D scene is not running. */
+  poster?: string;
+}
+
+const { id = 'build-story', label = 'How we build', title = 'From foundations to gold leaf.', poster = 'build-poster' } = Astro.props;
+
+const groupTitle = (groupId: string) => serviceGroups.find((group) => group.id === groupId)?.title ?? 'These';
+---
+
+<section class="story theme-dark" id={id} data-build-story data-build-end={BUILD_END} style={`--stages:${buildStages.length}`}>
+  <a class="story__skip" href={`#${id}-end`}>Skip the build animation</a>
+
+  <div class="story__pin">
+    <div class="story__stage" data-stage>
+      <canvas data-build-canvas aria-hidden="true"></canvas>
+
+      <div class="story__poster">
+        <Media
+          src={image(poster)}
+          alt="A 3D model of the finished building, with a tower, an arcaded wing and a gilded dome"
+          ratio="fill"
+          sizes="(min-width: 60rem) 60vw, 100vw"
+        />
+      </div>
+
+      <p class="story__hint" aria-hidden="true">
+        <Icon name="mouse-scroll" />
+        Scroll to build
+      </p>
+    </div>
+
+    <div class="container story__layout">
+      <div class="story__copy">
+        <p class="label">{label}</p>
+        <h2 class="h2">{title}</h2>
+
+        <div class="story__steps">
+          <span class="story__rail" aria-hidden="true">
+            <i data-rail-fill></i>
+          </span>
+
+          <ol role="list">
+            {
+              buildStages.map((stage, index) => (
+                <li class="step" data-step data-start={stage.start}>
+                  <span class="step__number">{String(index + 1).padStart(2, '0')}</span>
+
+                  <div class="step__body">
+                    <h3 class="h3">
+                      <span class="step__title" data-step-title>
+                        <Icon name={stage.icon} />
+                        {stage.title}
+                      </span>
+                    </h3>
+
+                    <div class="step__detail">
+                      <div>
+                        <p>{stage.text}</p>
+
+                        <ul class="step__services" role="list">
+                          {stage.services.map((service) => <li>{service}</li>)}
+                        </ul>
+
+                        <a class="step__link" href={`/services/#${stage.group}`} data-step-link>
+                          {groupTitle(stage.group)} services
+                          <Icon name="arrow-right-bold" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+
+        <button class="story__exit" type="button" data-story-exit hidden>
+          <Icon name="list-bullets" />
+          Show all stages as a list
+        </button>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<span class="story-end" id={`${id}-end`} tabindex="-1"></span>
+
+<script>
+  import type { BuildScene } from '../scripts/build-scene.ts';
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+  const wideLayout = window.matchMedia('(min-width: 60rem)');
+
+  const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+
+  /** The pinned layout needs room for the scene and the copy; shorter windows keep the still version. */
+  const MIN_HEIGHT = 600;
+
+  const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
+
+  function initStory(section: HTMLElement) {
+    const eligible = !reducedMotion.matches && !saveData && 'WebGL2RenderingContext' in window && window.innerHeight >= MIN_HEIGHT;
+
+    if (!eligible) return;
+
+    const pin = section.querySelector<HTMLElement>('.story__pin')!;
+    const stage = section.querySelector<HTMLElement>('[data-stage]')!;
+    const copy = section.querySelector<HTMLElement>('.story__copy')!;
+    const heading = section.querySelector<HTMLElement>('h2')!;
+    const canvas = section.querySelector<HTMLCanvasElement>('[data-build-canvas]')!;
+    const fill = section.querySelector<HTMLElement>('[data-rail-fill]');
+    const exit = section.querySelector<HTMLButtonElement>('[data-story-exit]');
+
+    const steps = [...section.querySelectorAll<HTMLElement>('[data-step]')];
+    const starts = steps.map((step) => Number(step.dataset.start));
+    const buildEnd = Number(section.dataset.buildEnd) || 1;
+
+    const links = steps.map((step) => step.querySelector<HTMLAnchorElement>('[data-step-link]'));
+
+    const listeners = new AbortController();
+    const observers: { disconnect(): void }[] = [];
+    const buttons: HTMLButtonElement[] = [];
+
+    let scene: BuildScene | undefined;
+    let closed = false;
+    let activeStep = -1;
+    let scheduled = false;
+
+    /* Layout: pin straight away, so the section's height is settled before anything loads. */
+
+    section.dataset.live = '';
+
+    // On a wide screen the canvas runs under the fixed site header; on a phone it starts below it.
+    const markCovered = () => {
+      const header = document.querySelector<HTMLElement>('[data-header]')?.offsetHeight ?? 0;
+
+      canvas.style.setProperty('--scene-top', String(wideLayout.matches ? header : 0));
+    };
+
+    markCovered();
+
+    const travel = () => section.offsetHeight - pin.offsetHeight;
+
+    /**
+     * Whether the pinned layout has room. On a wide screen the copy, with its tallest stage open,
+     * must fit under the site header. On a phone the copy takes what it needs, so the scene must
+     * still be left with a worthwhile height.
+     */
+    const fits = () => {
+      if (window.innerHeight < MIN_HEIGHT) return false;
+      if (!wideLayout.matches) return stage.clientHeight >= 190;
+
+      // Each stage's detail is a panel that opens and closes around its content. The panel's height is
+      // what the copy currently spends on it, even mid-animation; the content's scroll height is what
+      // it needs when fully open.
+      const panels = steps.map((step) => step.querySelector<HTMLElement>('.step__detail')!);
+      const contents = panels.map((panel) => panel.firstElementChild as HTMLElement);
+
+      const open = panels.reduce((total, panel) => total + panel.offsetHeight, 0);
+      const tallest = Math.max(...contents.map((content) => content.scrollHeight));
+
+      // A stage that is not current stays open while it holds focus, so allow for it as well.
+      const focused = steps.findIndex((step, index) => index !== activeStep && step.contains(document.activeElement));
+      const alsoOpen = focused >= 0 ? contents[focused].scrollHeight : 0;
+
+      const header = document.querySelector<HTMLElement>('[data-header]')?.offsetHeight ?? 0;
+
+      return copy.offsetHeight - open + tallest + alsoOpen + header + 32 <= pin.clientHeight;
+    };
+
+    const scrollProgress = () => {
+      const distance = travel();
+
+      return distance > 0 ? clamp01(-section.getBoundingClientRect().top / distance) : 0;
+    };
+
+    /** Stage links are in the Tab order for the current stage, and for any stage that already holds focus. */
+    const syncLinks = () => {
+      links.forEach((link, index) => {
+        if (!link) return;
+
+        if (index === activeStep || link === document.activeElement) link.removeAttribute('tabindex');
+        else link.tabIndex = -1;
+      });
+    };
+
+    /** Captions and the progress rail follow what the model is showing, not the raw scroll position. */
+    const present = (progress: number) => {
+      const built = Math.min(progress / buildEnd, 1);
+
+      let next = 0;
+
+      starts.forEach((start, index) => {
+        if (built >= start) next = index;
+      });
+
+      if (next !== activeStep) {
+        activeStep = next;
+
+        steps.forEach((step, index) => step.toggleAttribute('data-active', index === next));
+        buttons.forEach((button, index) => (index === next ? button.setAttribute('aria-current', 'step') : button.removeAttribute('aria-current')));
+        syncLinks();
+      }
+
+      fill?.style.setProperty('--progress', built.toFixed(4));
+      section.toggleAttribute('data-started', progress > 0.01);
+    };
+
+    const sync = () => {
+      scheduled = false;
+
+      const progress = scrollProgress();
+
+      if (scene) scene.setProgress(progress);
+      else present(progress);
+    };
+
+    // Scroll and resize events are folded into one update per frame.
+    const requestSync = () => {
+      if (scheduled) return;
+
+      scheduled = true;
+      requestAnimationFrame(sync);
+    };
+
+    /* Stage titles become buttons that jump to their stage. */
+
+    steps.forEach((step, index) => {
+      const title = step.querySelector<HTMLElement>('[data-step-title]')!;
+      const button = document.createElement('button');
+
+      button.type = 'button';
+      button.className = 'step__jump';
+      button.append(...title.childNodes);
+
+      button.addEventListener('click', () => {
+        const top = section.getBoundingClientRect().top + window.scrollY;
+
+        window.scrollTo({ top: top + (starts[index] * buildEnd + 0.012) * travel(), behavior: 'smooth' });
+      });
+
+      title.append(button);
+      buttons.push(button);
+    });
+
+    /* Back to the still version: on request, on failure, or when reduced motion is switched on. */
+
+    const close = () => {
+      if (closed) return;
+
+      closed = true;
+
+      const inside = section.getBoundingClientRect().top < 0 && section.getBoundingClientRect().bottom > 0;
+      const hadFocus = section.contains(document.activeElement);
+
+      listeners.abort();
+      observers.forEach((observer) => observer.disconnect());
+
+      scene?.dispose();
+      scene = undefined;
+
+      buttons.forEach((button) => button.replaceWith(...button.childNodes));
+      steps.forEach((step) => step.removeAttribute('data-active'));
+      links.forEach((link) => link?.removeAttribute('tabindex'));
+
+      if (exit) exit.hidden = true;
+
+      delete section.dataset.live;
+      delete section.dataset.ready;
+      section.removeAttribute('data-started');
+
+      // The section just became much shorter. Keep the reader at its start instead of far below it.
+      if (inside) section.scrollIntoView();
+
+      // The control that had focus is gone or hidden, so hand focus to the heading of the list.
+      if (hadFocus) {
+        heading.tabIndex = -1;
+        heading.focus({ preventScroll: true });
+      }
+    };
+
+    if (exit) {
+      exit.hidden = false;
+      exit.addEventListener('click', close, { signal: listeners.signal });
+    }
+
+    reducedMotion.addEventListener('change', () => reducedMotion.matches && close(), { signal: listeners.signal });
+
+    // Once focus leaves a stage that is no longer current, its link drops out of the Tab order again.
+    section.addEventListener('focusout', () => requestAnimationFrame(syncLinks), { signal: listeners.signal });
+
+    window.addEventListener('scroll', requestSync, { passive: true, signal: listeners.signal });
+
+    window.addEventListener(
+      'resize',
+      () => {
+        markCovered();
+        scene?.resize();
+
+        if (fits()) requestSync();
+        else close();
+      },
+      { signal: listeners.signal },
+    );
+
+    sync();
+
+    if (!fits()) {
+      close();
+
+      return;
+    }
+
+    // Larger text or a narrower column can make the copy outgrow the pin later on.
+    const room = new ResizeObserver(() => !fits() && close());
+
+    room.observe(copy);
+    observers.push(room);
+
+    /* The scene: three.js is fetched once the section is within two thirds of a screen and the page is idle. */
+
+    const readColors = () => {
+      const styles = getComputedStyle(section);
+
+      return {
+        accent: styles.getPropertyValue('--accent').trim(),
+        background: styles.getPropertyValue('--bg').trim(),
+      };
+    };
+
+    const start = async () => {
+      try {
+        const { createBuildScene } = await import('../scripts/build-scene.ts');
+
+        if (closed) return;
+
+        // This draws a first frame before returning, so "ready" means a picture is really there.
+        scene = createBuildScene(canvas, { colors: readColors(), progress: scrollProgress(), onProgress: present });
+        section.dataset.ready = '';
+      } catch (error) {
+        console.warn('The 3D scene could not start, so the still version is shown instead.', error);
+        close();
+
+        return;
+      }
+
+      const visibility = new IntersectionObserver(([entry]) => scene?.setActive(entry.isIntersecting));
+      const size = new ResizeObserver(() => scene?.resize());
+
+      visibility.observe(section);
+      size.observe(canvas);
+
+      observers.push(visibility, size);
+
+      // A lost graphics context cannot draw again without a rebuild, so return to the still picture.
+      canvas.addEventListener('webglcontextlost', close, { signal: listeners.signal });
+
+      // A slight shift of viewpoint with the mouse, on devices that have one.
+      if (finePointer.matches) {
+        stage.addEventListener(
+          'pointermove',
+          (event) => {
+            const rect = stage.getBoundingClientRect();
+
+            scene?.setPointer(((event.clientX - rect.left) / rect.width) * 2 - 1, ((event.clientY - rect.top) / rect.height) * 2 - 1);
+          },
+          { signal: listeners.signal },
+        );
+
+        stage.addEventListener('pointerleave', () => scene?.setPointer(0, 0), { signal: listeners.signal });
+      }
+    };
+
+    // Percentage root margins are measured against the viewport's width, so use pixels for a vertical lead.
+    const whenIdle = (run: () => void) => {
+      // Safari has no requestIdleCallback, so it gets a short delay instead.
+      const schedule = () => {
+        if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(run, { timeout: 2000 });
+        else setTimeout(run, 200);
+      };
+
+      if (document.readyState === 'complete') schedule();
+      else window.addEventListener('load', schedule, { once: true, signal: listeners.signal });
+    };
+
+    const loader = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+
+        loader.disconnect();
+        whenIdle(start);
+      },
+      { rootMargin: `${Math.round(window.innerHeight * 0.66)}px 0px` },
+    );
+
+    loader.observe(section);
+    observers.push(loader);
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-build-story]').forEach(initStory);
+</script>
+
+<style>
+  /* ------------------------------------------------------------------------
+     Still version: the default, and the fallback.
+     ------------------------------------------------------------------------ */
+
+  .story {
+    position: relative;
+    background: var(--bg);
+  }
+
+  .story__skip,
+  .story__exit[hidden] {
+    display: none;
+  }
+
+  .story__pin {
+    display: grid;
+    gap: 2.5rem;
+    padding-block: var(--section);
+  }
+
+  .story__stage {
+    position: relative;
+    width: min(100% - 2 * var(--gutter), var(--max));
+    margin-inline: auto;
+    aspect-ratio: 5 / 4;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+  }
+
+  .story canvas,
+  .story__hint {
+    display: none;
+  }
+
+  .story__copy {
+    display: grid;
+    gap: 1.5rem;
+    justify-items: start;
+  }
+
+  .story__steps {
+    position: relative;
+    width: 100%;
+  }
+
+  .story__rail {
+    display: none;
+  }
+
+  .story ol {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+    gap: 1rem;
+    padding-block: 1.25rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .step__number {
+    padding-top: 0.3rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    font-stretch: 112%;
+    letter-spacing: 0.08em;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+
+  .step__title,
+  .step :global(.step__jump) {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+  .step :global(.step__jump) {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .step .h3 :global(.icon) {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--accent);
+  }
+
+  .step__detail > div {
+    display: grid;
+    gap: 0.9rem;
+    padding-top: 0.6rem;
+    overflow: hidden;
+  }
+
+  .step__detail p {
+    color: var(--fg-muted);
+  }
+
+  .step__services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+  }
+
+  .step__services li {
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 560;
+  }
+
+  .step__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    justify-self: start;
+
+    font-size: 0.875rem;
+    font-weight: 650;
+    color: var(--accent-text);
+    text-decoration: none;
+    pointer-events: auto;
+  }
+
+  .step__link :global(.icon) {
+    width: 0.95rem;
+    height: 0.95rem;
+    transition: transform 0.35s var(--ease-out);
+  }
+
+  .step__link:hover :global(.icon) {
+    transform: translateX(0.25rem);
+  }
+
+  .story__exit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border: 0;
+
+    background: none;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fg-muted);
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 0.25em;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: color 0.25s var(--ease-out);
+  }
+
+  .story__exit:hover {
+    color: var(--fg);
+  }
+
+  .story__exit :global(.icon) {
+    width: 1.05rem;
+    height: 1.05rem;
+  }
+
+  .story-end {
+    display: block;
+    outline: none;
+    scroll-margin-top: var(--header-h);
+  }
+
+  /* ------------------------------------------------------------------------
+     Live version: pinned to the viewport, driven by scroll.
+     ------------------------------------------------------------------------ */
+
+  .story[data-live] {
+    /* Scrolling distance per stage, plus the screen the pin itself occupies. */
+    height: calc(var(--stages) * 70svh + 100svh);
+  }
+
+  .story[data-live] .story__skip {
+    position: absolute;
+    top: calc(var(--header-h) + 0.75rem);
+    left: var(--gutter);
+    z-index: 3;
+    display: block;
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--radius);
+
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 0.875rem;
+    font-weight: 650;
+    text-decoration: none;
+
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .story[data-live] .story__skip:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* On a phone: the scene takes whatever height the copy leaves, below the site header. */
+
+  .story[data-live] .story__pin {
+    position: sticky;
+    top: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 0;
+    height: 100svh;
+    padding-block: var(--header-h) 1.25rem;
+    overflow: hidden;
+  }
+
+  .story[data-live] .story__stage {
+    width: auto;
+    margin: 0;
+    aspect-ratio: auto;
+    border-radius: 0;
+  }
+
+  .story[data-live] canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.9s var(--ease-out);
+  }
+
+  .story[data-ready] canvas {
+    opacity: 1;
+  }
+
+  /* The still stays in place, dimmed, until the scene has drawn its first frame. */
+
+  .story[data-live] .story__poster {
+    position: absolute;
+    inset: 4% 6%;
+    opacity: 0.35;
+    transition: opacity 0.6s var(--ease-out);
+  }
+
+  .story[data-live] .story__poster :global(.media) {
+    background: none;
+  }
+
+  .story[data-live] .story__poster :global(img) {
+    object-fit: contain;
+  }
+
+  .story[data-ready] .story__poster {
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.6s var(--ease-out),
+      visibility 0s linear 0.6s;
+  }
+
+  .story[data-live] .story__hint {
+    position: absolute;
+    left: 50%;
+    bottom: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.9rem 0.45rem 0.7rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+
+    background: color-mix(in srgb, var(--ink-950) 60%, transparent);
+    backdrop-filter: blur(8px);
+
+    font-size: 0.75rem;
+    font-weight: 650;
+    font-stretch: 110%;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    transform: translateX(-50%);
+    transition: opacity 0.5s var(--ease-out);
+  }
+
+  .story__hint :global(.icon) {
+    width: 1.1rem;
+    height: 1.1rem;
+    color: var(--accent);
+  }
+
+  .story[data-started] .story__hint {
+    opacity: 0;
+  }
+
+  .story[data-live] .story__copy {
+    gap: 0.75rem;
+  }
+
+  .story[data-live] .story__copy > .h2 {
+    font-size: clamp(1.3rem, 5.2vw, 1.8rem);
+  }
+
+  .story[data-live] ol {
+    border-top: 0;
+  }
+
+  .story[data-live] .step {
+    padding-block: 0.25rem 0;
+    border-bottom: 0;
+  }
+
+  /* On a phone only the current stage is shown, but every stage stays readable to assistive technology. */
+
+  @media (max-width: 59.99rem) {
+    .story[data-live] .step__services {
+      display: none;
+    }
+
+    .story[data-live] .step:not([data-active], :focus-within) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  @media (min-width: 60rem) {
+    .story__pin {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      align-items: center;
+      width: min(100% - 2 * var(--gutter), var(--max));
+      margin-inline: auto;
+    }
+
+    .story__stage {
+      order: 2;
+      width: 100%;
+    }
+
+    .story__layout {
+      width: 100%;
+    }
+
+    /* Live, on a wide screen: the scene fills the section, with every stage listed on the left. */
+
+    .story[data-live] {
+      height: calc(var(--stages) * 90svh + 100svh);
+    }
+
+    .story[data-live] .story__pin {
+      display: block;
+      width: auto;
+      padding: 0;
+    }
+
+    .story[data-live] .story__stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    .story[data-live] canvas {
+      --scene-shift: 0.18;
+    }
+
+    .story[data-live] .story__stage::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, var(--bg) 20%, color-mix(in srgb, var(--bg) 70%, transparent) 36%, transparent 54%);
+      pointer-events: none;
+    }
+
+    .story[data-live] .story__poster {
+      inset: 14% 4% 8% 42%;
+    }
+
+    .story[data-live] .story__layout {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      width: min(100% - 2 * var(--gutter), var(--max));
+      align-content: center;
+      padding-top: var(--header-h);
+      pointer-events: none;
+    }
+
+    .story[data-live] .story__copy {
+      width: min(27rem, 36vw);
+      gap: clamp(0.8rem, 2.2vh, 1.5rem);
+    }
+
+    .story[data-live] .story__copy > .h2 {
+      font-size: clamp(1.6rem, 4.4vh, var(--step-3));
+    }
+
+    .story[data-live] .story__steps {
+      padding-left: 1.5rem;
+    }
+
+    .story[data-live] .story__rail {
+      position: absolute;
+      inset: 0 auto 0 0;
+      display: block;
+      width: 2px;
+      background: var(--line);
+    }
+
+    .story__rail i {
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      transform: scaleY(var(--progress, 0));
+      transform-origin: top;
+    }
+
+    .story[data-live] .step {
+      padding-block: clamp(0.4rem, 1.1vh, 0.85rem);
+      color: var(--fg-muted);
+      transition: color 0.5s var(--ease-out);
+    }
+
+    .story[data-live] .step .step__number,
+    .story[data-live] .step .h3 :global(.icon) {
+      color: var(--fg-muted);
+      transition: color 0.5s var(--ease-out);
+    }
+
+    .story[data-live] .step:is([data-active], :focus-within) {
+      color: var(--fg);
+    }
+
+    .story[data-live] .step:is([data-active], :focus-within) .step__number,
+    .story[data-live] .step:is([data-active], :focus-within) .h3 :global(.icon) {
+      color: var(--accent);
+    }
+
+    .story[data-live] .step :global(.step__jump) {
+      pointer-events: auto;
+    }
+
+    /* The current stage opens to show its detail; the others fold to a single line. */
+
+    .story[data-live] .step__detail {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.6s var(--ease-out);
+    }
+
+    .story[data-live] .step:is([data-active], :focus-within) .step__detail {
+      grid-template-rows: 1fr;
+    }
+
+    .story[data-live] .story__hint {
+      left: auto;
+      right: var(--gutter);
+      bottom: 2rem;
+      transform: none;
+    }
+  }
+</style>

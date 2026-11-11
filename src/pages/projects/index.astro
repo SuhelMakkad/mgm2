@@ -194,7 +194,7 @@ const crumbs = [{ label: 'Projects', href: '/projects/' }];
         if (value !== 'all' && value !== 'gallery') params.set(key, value);
       }
 
-      // Keep any other query parameters (for example the palette preview) intact.
+      // Keep any other query parameters intact.
       const current = new URLSearchParams(location.search);
 
       for (const key of ['status', 'sector', 'view']) current.delete(key);

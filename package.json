@@ -15,10 +15,12 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
-    "astro": "^7.4.10"
+    "astro": "^7.4.10",
+    "three": "^0.187.0"
   },
   "devDependencies": {
     "@iconify-json/ph": "^1.2.2",
+    "@types/three": "^0.187.0",
     "sharp": "^0.35.5"
   }
 }

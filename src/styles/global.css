@@ -2,18 +2,17 @@
    Al Madar MGM — design tokens and base styles
 
    One sans-serif family (Archivo) carries everything: wide and heavy for
-   display, regular width for reading. Colour comes from a small palette that
-   can be swapped by setting data-palette on <html> (see src/data/site.ts).
+   display, regular width for reading. Colour is graphite and warm white with
+   a single safety-orange accent.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Palettes
-   Each one defines the same tokens: dark surfaces, light surfaces, text and
-   one accent in four roles (fill, text on light, text on dark, text on fill).
+   Colour
+   Dark surfaces, light surfaces, text, and one accent in four roles:
+   fill, text on light, text on dark, and text on the fill.
    -------------------------------------------------------------------------- */
 
-:root,
-[data-palette='ember'] {
+:root {
   --ink-950: #0a0b0d;
   --ink-900: #111316;
   --ink-800: #1b1e23;
@@ -33,72 +32,6 @@
   --accent-strong: #c2410c;
   --accent-soft: #ff8a57;
   --on-accent: #111316;
-}
-
-[data-palette='cobalt'] {
-  --ink-950: #060a1a;
-  --ink-900: #0a1024;
-  --ink-800: #131b38;
-  --ink-700: #222d55;
-
-  --paper: #f4f6fb;
-  --paper-2: #e8ecf5;
-  --paper-3: #d5dbea;
-  --surface: #ffffff;
-
-  --text: #0a1024;
-  --muted: #545d75;
-  --on-dark: #f2f4fa;
-  --on-dark-muted: #a3acc4;
-
-  --accent: #2f5bff;
-  --accent-strong: #2147d9;
-  --accent-soft: #8ea6ff;
-  --on-accent: #ffffff;
-}
-
-[data-palette='crimson'] {
-  --ink-950: #0c0c0d;
-  --ink-900: #141415;
-  --ink-800: #1f1f21;
-  --ink-700: #323236;
-
-  --paper: #f7f7f6;
-  --paper-2: #ececea;
-  --paper-3: #dadad7;
-  --surface: #ffffff;
-
-  --text: #141415;
-  --muted: #5c5c61;
-  --on-dark: #f6f6f4;
-  --on-dark-muted: #aaaaaf;
-
-  --accent: #dc2430;
-  --accent-strong: #b91522;
-  --accent-soft: #ff6b74;
-  --on-accent: #ffffff;
-}
-
-[data-palette='highvis'] {
-  --ink-950: #0b0c0c;
-  --ink-900: #131515;
-  --ink-800: #1e2121;
-  --ink-700: #303434;
-
-  --paper: #f1f2ef;
-  --paper-2: #e5e7e2;
-  --paper-3: #d3d6cf;
-  --surface: #fbfbf9;
-
-  --text: #131515;
-  --muted: #585d5b;
-  --on-dark: #f3f4f0;
-  --on-dark-muted: #a7aca8;
-
-  --accent: #ffc61a;
-  --accent-strong: #7a5a00;
-  --accent-soft: #ffd54f;
-  --on-accent: #131515;
 }
 
 @font-face {
@@ -606,12 +539,18 @@ p {
 .js [data-reveal='wipe'] {
   opacity: 1;
   transform: none;
+  transition: none;
+}
+
+/* Keep the observed frame unclipped so IntersectionObserver can trigger the wipe. */
+
+.js [data-reveal='wipe'] > * {
   clip-path: inset(0 0 100% 0);
   transition: clip-path 1.2s var(--ease-in-out);
   transition-delay: calc(var(--i, 0) * 90ms);
 }
 
-.js [data-reveal='wipe'].is-in {
+.js [data-reveal='wipe'].is-in > * {
   clip-path: inset(0);
 }
 
@@ -692,7 +631,7 @@ p {
   }
 
   .js [data-reveal],
-  .js [data-reveal='wipe'] {
+  .js [data-reveal='wipe'] > * {
     opacity: 1;
     transform: none;
     clip-path: none;
@@ -713,7 +652,7 @@ p {
   }
 
   .js [data-reveal],
-  .js [data-reveal='wipe'] {
+  .js [data-reveal='wipe'] > * {
     opacity: 1;
     transform: none;
     clip-path: none;
