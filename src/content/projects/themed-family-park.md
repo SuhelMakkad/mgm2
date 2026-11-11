@@ -2,6 +2,8 @@
 title: Themed Family Park
 summary: Themed plaster rockwork, stamped concrete paths and three-dimensional floor art for a public leisure space.
 sector: parks
+image: ../../assets/images/sector-parks.jpg
+imageAlt: Illustrative image for Themed Family Park
 status: upcoming
 location: Dubai, UAE
 scope:

@@ -33,21 +33,20 @@ export default defineConfig({
 
   fonts: [
     {
-      name: 'Besley',
-      cssVariable: '--font-besley',
-      provider: fontProviders.fontsource(),
-      weights: ['400 900'],
-      styles: ['normal'],
-      subsets: ['latin'],
-      fallbacks: ['Georgia', 'serif'],
-    },
-    {
-      name: 'Libre Franklin',
-      cssVariable: '--font-franklin',
-      provider: fontProviders.fontsource(),
-      weights: ['100 900'],
-      styles: ['normal'],
-      subsets: ['latin'],
+      // Archivo, trimmed to the weights (400 to 800) and widths (100% to 125%) the design uses.
+      name: 'Archivo',
+      cssVariable: '--font-archivo',
+      provider: fontProviders.local(),
+      options: {
+        variants: [
+          {
+            src: ['./src/assets/fonts/archivo-latin-variable.woff2'],
+            weight: '400 800',
+            stretch: '100% 125%',
+            style: 'normal',
+          },
+        ],
+      },
       fallbacks: ['Helvetica Neue', 'Arial', 'sans-serif'],
     },
   ],

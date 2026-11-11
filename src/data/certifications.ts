@@ -7,6 +7,7 @@
 
 export interface Certification {
   id: string;
+  icon: string;
   short: string;
   name: string;
   description: string;
@@ -17,6 +18,7 @@ export interface Certification {
 export const certifications: Certification[] = [
   {
     id: 'iso',
+    icon: 'seal-check',
     short: 'ISO',
     name: 'ISO certification',
     description:
@@ -25,6 +27,7 @@ export const certifications: Certification[] = [
   },
   {
     id: 'icv',
+    icon: 'certificate',
     short: 'ICV',
     name: 'ICV certification',
     description:
@@ -33,6 +36,7 @@ export const certifications: Certification[] = [
   },
   {
     id: 'other',
+    icon: 'medal',
     short: '+',
     name: 'Other certifications',
     description:

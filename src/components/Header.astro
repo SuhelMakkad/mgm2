@@ -108,14 +108,14 @@ const isPage = (href: string) => path === href;
 
   .site-header[data-scrolled],
   .site-header[data-open] {
-    background: rgb(11 26 32 / 0.92);
+    background: var(--ink-900);
     border-bottom-color: var(--line);
   }
 
   @supports (backdrop-filter: blur(1px)) {
     .site-header[data-scrolled] {
-      background: rgb(11 26 32 / 0.94);
-      backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--ink-900) 88%, transparent);
+      backdrop-filter: blur(16px);
     }
   }
 
@@ -157,7 +157,8 @@ const isPage = (href: string) => path === href;
     padding-block: 0.75rem;
 
     font-size: 0.9375rem;
-    font-weight: 500;
+    font-weight: 560;
+    font-stretch: 106%;
     text-decoration: none;
     color: var(--fg);
     white-space: nowrap;
@@ -166,10 +167,10 @@ const isPage = (href: string) => path === href;
   .nav__link::after {
     content: '';
     position: absolute;
-    inset: auto 0 0.45rem 0;
-    height: 1px;
+    inset: auto 0 0.4rem 0;
+    height: 2px;
 
-    background: var(--accent-line);
+    background: var(--accent);
     transform: scaleX(0);
     transform-origin: right center;
     transition: transform 0.4s var(--ease-out);
@@ -203,7 +204,7 @@ const isPage = (href: string) => path === href;
 
     background: var(--ink-950);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
     box-shadow: 0 24px 48px -24px rgb(0 0 0 / 0.6);
 
     opacity: 0;
@@ -226,7 +227,7 @@ const isPage = (href: string) => path === href;
   .nav__sub a {
     display: block;
     padding: 0.6rem 0.75rem;
-    border-radius: var(--radius);
+    border-radius: 8px;
 
     font-size: 0.9rem;
     text-decoration: none;
@@ -239,13 +240,13 @@ const isPage = (href: string) => path === href;
   .nav__sub a:hover,
   .nav__sub a:focus-visible {
     color: var(--fg);
-    background: rgb(233 236 232 / 0.06);
+    background: color-mix(in srgb, var(--on-dark) 8%, transparent);
   }
 
   .site-header__cta {
     display: none;
-    min-height: 2.6rem;
-    padding: 0.55rem 1.1rem;
+    min-height: 2.7rem;
+    padding: 0.55rem 1.25rem;
   }
 
   /* Menu toggle */
@@ -342,15 +343,16 @@ const isPage = (href: string) => path === href;
 
   .mobile-menu__link {
     display: block;
-    font-family: var(--font-display);
-    font-size: 1.6rem;
-    font-weight: 500;
-    line-height: 1.2;
+    font-size: 1.75rem;
+    font-weight: 760;
+    font-stretch: 122%;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
     text-decoration: none;
   }
 
   .mobile-menu__link[aria-current='page'] {
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   .mobile-menu__sub {

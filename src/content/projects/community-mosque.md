@@ -2,6 +2,8 @@
 title: Community Mosque
 summary: A neighbourhood mosque built from the ground up, with carved plaster ornament and gilded detailing to the prayer hall.
 sector: house-of-worship
+image: ../../assets/images/sector-house-of-worship.jpg
+imageAlt: Illustrative image for Community Mosque
 status: completed
 location: Dubai, UAE
 scope:

@@ -2,6 +2,8 @@
 title: School Campus Refurbishment
 summary: Refurbishment of classrooms and common areas, with hand-painted murals for the junior school.
 sector: schools
+image: ../../assets/images/sector-schools.jpg
+imageAlt: Illustrative image for School Campus Refurbishment
 status: upcoming
 location: Dubai, UAE
 scope:

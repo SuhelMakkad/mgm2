@@ -10,13 +10,15 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "assets": "node scripts/generate-brand-assets.mjs"
+    "assets": "node scripts/generate-brand-assets.mjs",
+    "images": "node scripts/generate-images.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.4.10"
   },
   "devDependencies": {
+    "@iconify-json/ph": "^1.2.2",
     "sharp": "^0.35.5"
   }
 }

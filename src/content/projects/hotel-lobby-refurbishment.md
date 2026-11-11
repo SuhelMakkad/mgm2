@@ -2,6 +2,8 @@
 title: Hotel Lobby Refurbishment
 summary: Refurbishment and fit-out of public areas in an operating hotel, finished in micro-cement and liquid-metal coatings.
 sector: hospitality
+image: ../../assets/images/sector-hospitality.jpg
+imageAlt: Illustrative image for Hotel Lobby Refurbishment
 status: completed
 location: Dubai, UAE
 scope:

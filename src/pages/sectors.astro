@@ -1,9 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import Media from '../components/Media.astro';
 import PageHero from '../components/PageHero.astro';
-import SectorIcon from '../components/SectorIcon.astro';
 
+import { image } from '../data/images';
 import { sectors } from '../data/sectors';
 import { getProjects } from '../data/projects';
 
@@ -22,7 +24,8 @@ const crumbs = [{ label: 'Sectors', href: '/sectors/' }];
   <PageHero
     label="Sectors"
     title={`${sectors.length} sectors. One standard of work.`}
-    lede="Each sector brings its own rules, risks and expectations. Nearly five decades of practice in the UAE have taught us to respect all of them."
+    lede="Each sector brings its own rules, risks and expectations. Nearly five decades in the UAE have taught us to respect all of them."
+    backdrop="sector-infrastructure"
     crumbs={crumbs}
   />
 
@@ -32,7 +35,13 @@ const crumbs = [{ label: 'Sectors', href: '/sectors/' }];
         {
           sectors.map((sector, index) => (
             <li class="sector" id={sector.id} data-reveal style={`--i:${index % 3}`}>
-              <SectorIcon icon={sector.icon} />
+              <div class="sector__media">
+                <Media src={image(sector.image)} alt="" ratio="3 / 2" sizes="(min-width: 72rem) 30vw, (min-width: 44rem) 48vw, 100vw" />
+
+                <span class="sector__icon">
+                  <Icon name={sector.icon} />
+                </span>
+              </div>
 
               <div class="sector__body">
                 <h2 class="h3">{sector.name}</h2>
@@ -41,6 +50,7 @@ const crumbs = [{ label: 'Sectors', href: '/sectors/' }];
                 {projectCount(sector.id) > 0 && (
                   <a class="sector__link" href={`/projects/?sector=${sector.id}`}>
                     View projects
+                    <Icon name="arrow-right-bold" />
                   </a>
                 )}
               </div>
@@ -51,73 +61,102 @@ const crumbs = [{ label: 'Sectors', href: '/sectors/' }];
     </div>
   </section>
 
-  <CtaBand title="Working in one of these sectors?" text="Tell us about the project and the environment it sits in. We will bring the people who know it." />
+  <CtaBand title="Working in one of these sectors?" text="Tell us about the project and the environment it sits in." />
 </Base>
 
 <style>
   .sectors {
     display: grid;
+    gap: 2.75rem 1.5rem;
     margin: 0;
-    border-top: 1px solid var(--line-strong);
   }
 
   .sector {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 1.5rem;
-    align-items: start;
-    padding: 2rem 0;
-    border-bottom: 1px solid var(--line);
-
-    scroll-margin-top: calc(var(--header-h) + 1rem);
-    transition: background-color 0.5s var(--ease-out);
+    gap: 1.1rem;
+    align-content: start;
+    scroll-margin-top: calc(var(--header-h) + 1.5rem);
   }
 
-  .sector :global(.sector-icon) {
-    color: var(--ink-700);
+  .sector__media {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+  }
+
+  .sector__media :global(img) {
+    transition: transform 1.4s var(--ease-out);
+  }
+
+  .sector:hover .sector__media :global(img) {
+    transform: scale(1.06);
+  }
+
+  .sector__icon {
+    position: absolute;
+    left: 0.9rem;
+    bottom: 0.9rem;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+
+    background: var(--surface);
+    color: var(--text);
     transition:
-      transform 0.6s var(--ease-out),
+      background-color 0.4s var(--ease-out),
       color 0.4s var(--ease-out);
   }
 
-  .sector:hover :global(.sector-icon) {
-    color: var(--accent);
-    transform: translateY(-0.25rem);
+  .sector:hover .sector__icon,
+  .sector:target .sector__icon {
+    background: var(--accent);
+    color: var(--on-accent);
   }
 
   /* Arriving from a link on another page: mark the sector that was asked for. */
 
-  .sector:target {
-    background: var(--paper-2);
-    box-shadow: -1rem 0 0 var(--paper-2), 1rem 0 0 var(--paper-2);
-  }
-
-  .sector:target :global(.sector-icon) {
-    color: var(--accent);
+  .sector:target .sector__media {
+    outline: 3px solid var(--accent);
+    outline-offset: 4px;
   }
 
   .sector__body {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.45rem;
     justify-items: start;
   }
 
-  .sector__link {
-    margin-top: 0.35rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--accent);
-    text-decoration-color: var(--accent-line);
+  .sector__body .muted {
+    font-size: 0.9688rem;
   }
 
-  .sector__link:hover {
-    text-decoration-thickness: 2px;
+  .sector__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.3rem;
+
+    font-size: 0.875rem;
+    font-weight: 650;
+    color: var(--accent-text);
+    text-decoration: none;
+  }
+
+  .sector__link :global(.icon) {
+    width: 0.95rem;
+    height: 0.95rem;
+    transition: transform 0.35s var(--ease-out);
+  }
+
+  .sector__link:hover :global(.icon) {
+    transform: translateX(0.25rem);
   }
 
   @media (min-width: 44rem) {
     .sectors {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: clamp(2rem, 5vw, 4.5rem);
     }
   }
 

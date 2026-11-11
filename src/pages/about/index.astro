@@ -2,11 +2,14 @@
 import Base from '../../layouts/Base.astro';
 import Arrow from '../../components/Arrow.astro';
 import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
+import Media from '../../components/Media.astro';
 import PageHero from '../../components/PageHero.astro';
 import Portrait from '../../components/Portrait.astro';
 import SectionHead from '../../components/SectionHead.astro';
 
 import { site, groupCompanies } from '../../data/site';
+import { image } from '../../data/images';
 import { evolution } from '../../data/history';
 import { getTeam } from '../../data/projects';
 
@@ -21,6 +24,19 @@ const anchors = [
   { label: 'History', href: '#history' },
   { label: 'The team', href: '#team' },
   { label: 'Group companies', href: '#group' },
+];
+
+const pillars = [
+  {
+    icon: 'target',
+    name: 'Mission',
+    text: 'To transform visions into enduring landmarks through superior construction expertise, uncompromising quality, and a steadfast commitment to excellence. We strive to deliver projects that stand the test of time while building lasting trust with our clients, partners, and communities.',
+  },
+  {
+    icon: 'binoculars',
+    name: 'Vision',
+    text: 'To build on our 47+ year legacy and become a benchmark for excellence in the construction industry, shaping the future of the UAE through innovation, sustainability, and outstanding construction achievements.',
+  },
 ];
 
 const message = [
@@ -39,12 +55,7 @@ const message = [
   breadcrumbs={crumbs}
   schema={[{ '@type': 'AboutPage', name: `About ${site.name}`, url: new URL('/about/', Astro.site).href }]}
 >
-  <PageHero
-    label="About us"
-    title="Built on trust since 1979."
-    lede="For over 47 years we have been part of the growth and development of Dubai and the wider UAE, guided by quality, integrity, reliability and excellence."
-    crumbs={crumbs}
-  >
+  <PageHero label="About us" title="Built on trust since 1979." backdrop="about-site" position="center 30%" crumbs={crumbs}>
     <ul class="anchors" role="list">
       {
         anchors.map((anchor) => (
@@ -61,24 +72,21 @@ const message = [
       <SectionHead label="Mission & vision" title="What we set out to do, and where we are going." />
 
       <div class="pillars">
-        <article class="pillar" data-reveal>
-          <h3 class="pillar__name">Mission</h3>
+        {
+          pillars.map((pillar, index) => (
+            <article class="pillar" data-reveal style={`--i:${index}`}>
+              <span class="pillar__icon">
+                <Icon name={pillar.icon} />
+              </span>
 
-          <p>
-            To transform visions into enduring landmarks through superior construction expertise, uncompromising quality, and a steadfast commitment to excellence. We strive to deliver projects that stand the test of time while building lasting trust with our clients, partners, and communities.
-          </p>
-        </article>
-
-        <article class="pillar" data-reveal style="--i:1">
-          <h3 class="pillar__name">Vision</h3>
-
-          <p>
-            To build on our 47+ year legacy and become a benchmark for excellence in the construction industry, shaping the future of the UAE through innovation, sustainability, and outstanding construction achievements.
-          </p>
-        </article>
+              <h3 class="h3">{pillar.name}</h3>
+              <p>{pillar.text}</p>
+            </article>
+          ))
+        }
       </div>
 
-      <p class="creed" data-reveal>
+      <p class="creed h1" data-reveal>
         <span>47 Years of Building Trust.</span>
         <span>A Future of Building Excellence.</span>
       </p>
@@ -99,7 +107,7 @@ const message = [
       <div class="letter__body">
         <SectionHead label="Message from the MD" title="It is my great pleasure to welcome you to Al Madar MGM Construction LLC." />
 
-        <div class="prose letter__prose" data-reveal>
+        <div class="prose" data-reveal>
           {message.map((paragraph) => <p>{paragraph}</p>)}
         </div>
 
@@ -113,39 +121,40 @@ const message = [
 
   <section class="section" id="history">
     <div class="container history">
-      <SectionHead
-        label="History"
-        title="Established in 1979, and growing with Dubai ever since."
-        lede="What began as a humble coating contracting company metamorphosed into a civil maintenance company and further grew into a full-fledged construction company."
-      >
-        <a class="arrow-link" href="/about/history/">
+      <div class="history__media" data-reveal="wipe">
+        <Media src={image('history-skyline')} alt="A Gulf city skyline at dusk" ratio="4 / 3" sizes="(min-width: 60rem) 45vw, 100vw" />
+      </div>
+
+      <div class="history__body">
+        <SectionHead label="History" title="Established in 1979, and growing with Dubai ever since." />
+
+        <ol class="steps" role="list">
+          {
+            evolution.map((step, index) => (
+              <li data-reveal style={`--i:${index}`}>
+                <span class="steps__icon">
+                  <Icon name={step.icon} />
+                </span>
+
+                <strong class="h3">{step.label}</strong>
+                <span class="muted">{step.note}</span>
+              </li>
+            ))
+          }
+        </ol>
+
+        <a class="btn" href="/about/history/" data-reveal>
           Read our history
           <Arrow />
         </a>
-      </SectionHead>
-
-      <ol class="steps" role="list">
-        {
-          evolution.map((step, index) => (
-            <li data-reveal style={`--i:${index}`}>
-              <span class="steps__index">{index === 0 ? site.founded : index === evolution.length - 1 ? 'Today' : 'Then'}</span>
-              <strong class="h3">{step.label}</strong>
-              <span class="muted">{step.note}</span>
-            </li>
-          ))
-        }
-      </ol>
+      </div>
     </div>
   </section>
 
   <section class="section theme-dark" id="team">
     <div class="container">
       <div class="team-head">
-        <SectionHead
-          label="The team"
-          title="Our greatest strength lies in our people."
-          lede="Meet the leadership that has shaped the company and continues to drive it forward."
-        />
+        <SectionHead label="The team" title="Our greatest strength lies in our people." />
 
         <a class="arrow-link" href="/about/team/" data-reveal>
           Meet the team
@@ -172,7 +181,7 @@ const message = [
 
   <section class="section" id="group">
     <div class="container group">
-      <SectionHead label="Our group companies" title="Part of a wider group." lede="Al Madar MGM Construction works alongside its sister companies." />
+      <SectionHead label="Our group companies" title="Part of a wider group." />
 
       <ul class="group__list" role="list">
         {
@@ -181,13 +190,14 @@ const message = [
               {
                 company.url ? (
                   <a class="group__card" href={company.url} rel="noopener">
+                    <Icon name="buildings" />
                     <span class="h3">{company.name}</span>
-                    <Arrow />
+                    <Icon name="arrow-up-right" />
                   </a>
                 ) : (
                   <span class="group__card">
+                    <Icon name="buildings" />
                     <span class="h3">{company.name}</span>
-                    <span class="group__tag">Group company</span>
                   </span>
                 )
               }
@@ -206,84 +216,87 @@ const message = [
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin: 0.75rem 0 0;
+    margin: 0.5rem 0 0;
   }
 
   .anchors a {
     display: inline-block;
-    padding: 0.5rem 0.9rem;
+    padding: 0.55rem 1rem;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: 999px;
+
+    background: color-mix(in srgb, var(--ink-950) 40%, transparent);
+    backdrop-filter: blur(8px);
 
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 560;
     text-decoration: none;
     transition:
-      border-color 0.25s,
-      color 0.25s;
+      background-color 0.3s var(--ease-out),
+      border-color 0.3s var(--ease-out),
+      color 0.3s var(--ease-out);
   }
 
   .anchors a:hover {
-    border-color: var(--accent-line);
-    color: var(--accent);
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
   }
 
   /* Mission and vision */
 
   .pillars {
     display: grid;
-    gap: 0;
-    margin-top: clamp(2.5rem, 5vw, 4.5rem);
-    border-top: 1px solid var(--line-strong);
+    gap: 1rem;
+    margin-top: clamp(2.5rem, 5vw, 4rem);
   }
 
   .pillar {
     display: grid;
-    gap: 1.25rem;
+    gap: 1rem;
     align-content: start;
-    padding-block: 2.25rem;
-    border-bottom: 1px solid var(--line);
+    padding: clamp(1.75rem, 3.5vw, 3rem);
+    border-radius: var(--radius-lg);
 
+    background: var(--surface);
     font-size: var(--step-1);
-    line-height: 1.6;
+    line-height: 1.55;
   }
 
-  .pillar__name {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--accent);
+  .pillar:last-child {
+    background: var(--ink-900);
+    color: var(--on-dark);
+  }
+
+  .pillar__icon {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 0.75rem;
+    border-radius: 50%;
+
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .pillar__icon :global(.icon) {
+    width: 1.75rem;
+    height: 1.75rem;
   }
 
   .creed {
     display: grid;
-    margin-top: clamp(3rem, 6vw, 5.5rem);
-
-    font-family: var(--font-display);
-    font-size: var(--step-4);
-    font-weight: 500;
-    line-height: 1.08;
-    letter-spacing: -0.02em;
-    text-wrap: balance;
+    margin-top: clamp(3.5rem, 7vw, 6.5rem);
   }
 
   .creed span:last-child {
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   @media (min-width: 52rem) {
     .pillars {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .pillar {
-      padding: 2.75rem clamp(2rem, 4vw, 4rem) 2.75rem 0;
-    }
-
-    .pillar + .pillar {
-      padding-left: clamp(2rem, 4vw, 4rem);
-      border-left: 1px solid var(--line);
     }
   }
 
@@ -309,19 +322,14 @@ const message = [
 
   .letter__sign strong,
   .letter__close strong {
-    font-family: var(--font-display);
-    font-size: 1.25rem;
-    font-weight: 500;
+    font-size: 1.1875rem;
+    font-weight: 720;
+    font-stretch: 114%;
   }
 
   .letter__body {
     display: grid;
     gap: 2.5rem;
-  }
-
-  .letter__prose p:first-child {
-    font-size: inherit;
-    line-height: inherit;
   }
 
   .letter__close {
@@ -358,36 +366,48 @@ const message = [
   .history {
     display: grid;
     gap: 3rem;
-    align-items: start;
+    align-items: center;
+  }
+
+  .history__media :global(.media) {
+    border-radius: var(--radius-lg);
+  }
+
+  .history__body {
+    display: grid;
+    justify-items: start;
+    gap: 2.25rem;
   }
 
   .steps {
     display: grid;
+    width: 100%;
     margin: 0;
     border-top: 1px solid var(--line-strong);
   }
 
   .steps li {
     display: grid;
-    grid-template-columns: 5rem minmax(0, 1fr);
-    gap: 0.2rem 1.5rem;
-    padding-block: 1.6rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 1.25rem;
+    align-items: center;
+    padding-block: 1.25rem;
     border-bottom: 1px solid var(--line);
   }
 
-  .steps__index {
+  .steps__icon {
     grid-row: span 2;
-    padding-top: 0.45rem;
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
 
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--accent);
+    background: var(--paper-2);
+    color: var(--accent-text);
   }
 
   .steps .muted {
-    grid-column: 2;
     font-size: 0.9375rem;
   }
 
@@ -412,7 +432,7 @@ const message = [
   .team-row {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2.25rem 1.25rem;
+    gap: 2.25rem 1rem;
     margin: 0;
   }
 
@@ -424,9 +444,9 @@ const message = [
 
   .team-row__name {
     margin-top: 0.9rem;
-    font-family: var(--font-display);
-    font-size: 1.125rem;
-    font-weight: 500;
+    font-size: 1.0625rem;
+    font-weight: 720;
+    font-stretch: 114%;
     line-height: 1.25;
   }
 
@@ -444,7 +464,6 @@ const message = [
   @media (min-width: 64rem) {
     .team-row {
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 1.5rem;
     }
   }
 
@@ -452,39 +471,35 @@ const message = [
 
   .group {
     display: grid;
-    gap: 3rem;
+    gap: 2.5rem;
     align-items: start;
   }
 
   .group__list {
     display: grid;
+    gap: 0.75rem;
     margin: 0;
-    border-top: 1px solid var(--line-strong);
   }
 
   .group__card {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem 1.5rem;
-    padding-block: 1.75rem;
-    border-bottom: 1px solid var(--line);
+    gap: 1.25rem;
+    padding: 1.5rem 1.75rem;
+    border-radius: var(--radius-lg);
+
+    background: var(--surface);
     text-decoration: none;
   }
 
-  .group__tag {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--fg-muted);
+  .group__card :global(.icon:first-child) {
+    width: 2rem;
+    height: 2rem;
+    color: var(--accent-text);
   }
 
-  .group__card :global(svg) {
-    width: 1.3rem;
-    height: 1.3rem;
-    color: var(--accent);
+  .group__card :global(.icon:last-child:not(:first-child)) {
+    margin-left: auto;
   }
 
   @media (min-width: 60rem) {

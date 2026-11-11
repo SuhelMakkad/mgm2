@@ -2,6 +2,8 @@
 title: Service Station Upgrade
 summary: Modification and civil works to a fuel station forecourt and service building, delivered under strict HSE controls.
 sector: fuel-facilities
+image: ../../assets/images/sector-fuel-facilities.jpg
+imageAlt: Illustrative image for Service Station Upgrade
 status: ongoing
 location: Dubai, UAE
 scope:

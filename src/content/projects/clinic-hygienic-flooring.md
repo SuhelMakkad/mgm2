@@ -2,6 +2,8 @@
 title: Clinic Hygienic Flooring
 summary: Seamless resin flooring installed across clinical areas as part of a wider refurbishment.
 sector: healthcare
+image: ../../assets/images/sector-healthcare.jpg
+imageAlt: Illustrative image for Clinic Hygienic Flooring
 status: completed
 location: Dubai, UAE
 scope:

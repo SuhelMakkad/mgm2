@@ -2,6 +2,8 @@
 title: Data Center Service Block
 summary: Construction of a service block supporting a mission-critical facility, including structure, MEP and polished concrete floors.
 sector: data-centers
+image: ../../assets/images/sector-data-centers.jpg
+imageAlt: Illustrative image for Data Center Service Block
 status: ongoing
 location: Dubai, UAE
 scope:

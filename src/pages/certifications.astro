@@ -2,8 +2,11 @@
 import Base from '../layouts/Base.astro';
 import Arrow from '../components/Arrow.astro';
 import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import Media from '../components/Media.astro';
 import PageHero from '../components/PageHero.astro';
 
+import { image } from '../data/images';
 import { certifications } from '../data/certifications';
 
 const crumbs = [{ label: 'Certifications', href: '/certifications/' }];
@@ -17,7 +20,8 @@ const crumbs = [{ label: 'Certifications', href: '/certifications/' }];
   <PageHero
     label="Certifications"
     title="Standards we are measured against."
-    lede="Independent certification gives clients, consultants and partners assurance that the way we work is checked against recognised benchmarks."
+    lede="Independent certification gives clients, consultants and partners assurance that our work is checked against recognised benchmarks."
+    backdrop="hse"
     crumbs={crumbs}
   />
 
@@ -27,37 +31,35 @@ const crumbs = [{ label: 'Certifications', href: '/certifications/' }];
         {
           certifications.map((certification, index) => (
             <li class="certificate" id={certification.id} data-reveal style={`--i:${index}`}>
-              <span class="seal" aria-hidden="true">
-                <span>{certification.short}</span>
+              <span class="certificate__icon">
+                <Icon name={certification.icon} />
               </span>
 
-              <div class="certificate__body">
-                <h2 class="h2">{certification.name}</h2>
-                <p class="lede">{certification.description}</p>
+              <h2 class="h3">{certification.name}</h2>
+              <p class="muted">{certification.description}</p>
 
-                {certification.details.length > 0 && (
-                  <dl class="certificate__details">
-                    {certification.details.map((detail) => (
-                      <div>
-                        <dt>{detail.label}</dt>
-                        <dd>{detail.value}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                )}
+              {certification.details.length > 0 && (
+                <dl class="certificate__details">
+                  {certification.details.map((detail) => (
+                    <div>
+                      <dt>{detail.label}</dt>
+                      <dd>{detail.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
 
-                {certification.document ? (
-                  <a class="arrow-link" href={certification.document}>
-                    View certificate
-                    <Arrow />
-                  </a>
-                ) : (
-                  <a class="arrow-link" href="/contact/">
-                    Request a copy
-                    <Arrow />
-                  </a>
-                )}
-              </div>
+              {certification.document ? (
+                <a class="arrow-link" href={certification.document}>
+                  View certificate
+                  <Arrow />
+                </a>
+              ) : (
+                <a class="arrow-link" href="/contact/">
+                  Request a copy
+                  <Arrow />
+                </a>
+              )}
             </li>
           ))
         }
@@ -65,88 +67,88 @@ const crumbs = [{ label: 'Certifications', href: '/certifications/' }];
     </div>
   </section>
 
-  <section class="section principle theme-dark">
-    <div class="container principle__inner">
-      <p class="label" data-reveal>How we build</p>
+  <section class="principle theme-dark">
+    <div class="principle__media" data-reveal="wipe">
+      <Media src={image('team-site')} alt="Construction professionals walking across a site" ratio="fill" sizes="(min-width: 60rem) 50vw, 100vw" />
+    </div>
 
-      <blockquote class="principle__text" data-reveal style="--i:1">
+    <div class="principle__body">
+      <Icon name="quotes-fill" />
+
+      <blockquote class="h2" data-reveal>
         <p>
           We firmly believe that successful construction is measured not only by the quality of what we build, but also by how responsibly we build it.
         </p>
       </blockquote>
+
+      <p class="label" data-reveal style="--i:1">How we build</p>
     </div>
   </section>
 
-  <CtaBand title="Prequalifying us for a tender?" text="We can supply certificates, registrations and supporting documents for your prequalification file." />
+  <CtaBand title="Prequalifying us for a tender?" text="We can supply certificates, registrations and supporting documents for your file." />
 </Base>
 
 <style>
   .certificates {
     display: grid;
+    gap: 1rem;
     margin: 0;
-    border-top: 1px solid var(--line-strong);
   }
 
   .certificate {
     display: grid;
-    gap: 1.75rem;
-    align-items: start;
-    padding-block: clamp(2.5rem, 5vw, 4rem);
-    border-bottom: 1px solid var(--line);
-    scroll-margin-top: calc(var(--header-h) + 1rem);
+    gap: 0.9rem;
+    align-content: start;
+    justify-items: start;
+    padding: clamp(1.75rem, 3vw, 2.5rem);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+
+    background: var(--surface);
+    scroll-margin-top: calc(var(--header-h) + 1.5rem);
+    transition:
+      border-color 0.4s var(--ease-out),
+      transform 0.4s var(--ease-out);
   }
 
-  /* A certification seal: two concentric rings around the short name. */
+  .certificate:hover {
+    border-color: var(--accent);
+    transform: translateY(-0.25rem);
+  }
 
-  .seal {
-    position: relative;
+  .certificate__icon {
     display: grid;
     place-items: center;
-    width: 6.5rem;
-    height: 6.5rem;
-    border: 1px solid var(--accent-line);
+    width: 4rem;
+    height: 4rem;
+    margin-bottom: 0.75rem;
     border-radius: 50%;
 
-    font-family: var(--font-display);
-    font-size: 1.5rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    color: var(--accent);
+    background: var(--accent);
+    color: var(--on-accent);
   }
 
-  .seal::before {
-    content: '';
-    position: absolute;
-    inset: 0.4rem;
-    border: 1px dashed var(--accent-line);
-    border-radius: 50%;
-    opacity: 0.7;
-    transition: transform 1.4s var(--ease-out);
+  .certificate__icon :global(.icon) {
+    width: 2rem;
+    height: 2rem;
   }
 
-  .certificate:hover .seal::before {
-    transform: rotate(60deg);
-  }
-
-  .certificate__body {
-    display: grid;
-    justify-items: start;
-    gap: 1.25rem;
+  .certificate .arrow-link {
+    margin-top: 0.75rem;
   }
 
   .certificate__details {
     display: grid;
     width: 100%;
-    max-width: 34rem;
-    margin: 0.5rem 0;
+    margin: 0.5rem 0 0;
     border-top: 1px solid var(--line);
   }
 
   .certificate__details div {
     display: grid;
-    grid-template-columns: 10rem minmax(0, 1fr);
+    grid-template-columns: 8rem minmax(0, 1fr);
     gap: 1rem;
-    padding-block: 0.8rem;
+    padding-block: 0.7rem;
     border-bottom: 1px solid var(--line);
     font-size: 0.9375rem;
   }
@@ -155,28 +157,48 @@ const crumbs = [{ label: 'Certifications', href: '/certifications/' }];
     color: var(--fg-muted);
   }
 
-  @media (min-width: 48rem) {
-    .certificate {
-      grid-template-columns: 11rem minmax(0, 1fr);
-      gap: clamp(2rem, 5vw, 5rem);
+  @media (min-width: 56rem) {
+    .certificates {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
-  /* Principle */
+  /* Principle: picture on one side, statement on the other. */
 
-  .principle__inner {
+  .principle {
     display: grid;
-    justify-items: start;
-    gap: 2rem;
   }
 
-  .principle__text {
-    max-width: 24em;
+  .principle__media {
+    position: relative;
+    min-height: 20rem;
+  }
 
-    font-family: var(--font-display);
-    font-size: var(--step-3);
-    font-weight: 400;
-    line-height: 1.24;
-    letter-spacing: -0.012em;
+  .principle__body {
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: 1.75rem;
+    padding: clamp(3.5rem, 8vw, 7.5rem) var(--gutter);
+  }
+
+  .principle__body > :global(.icon) {
+    width: 3.25rem;
+    height: 3.25rem;
+    color: var(--accent);
+  }
+
+  .principle blockquote {
+    max-width: 18em;
+  }
+
+  @media (min-width: 60rem) {
+    .principle {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .principle__body {
+      padding-inline: clamp(3rem, 6vw, 6rem);
+    }
   }
 </style>

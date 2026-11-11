@@ -19,6 +19,9 @@ export const site = {
   founded: 1979,
   years: 47,
 
+  // Colour palette: 'ember' | 'cobalt' | 'crimson' | 'highvis' (defined in src/styles/global.css).
+  palette: 'ember',
+
   locality: 'Dubai',
   country: 'United Arab Emirates',
   countryCode: 'AE',

@@ -2,12 +2,14 @@
 import Base from '../layouts/Base.astro';
 import Arrow from '../components/Arrow.astro';
 import CtaBand from '../components/CtaBand.astro';
-import ElevationDrawing from '../components/ElevationDrawing.astro';
+import Icon from '../components/Icon.astro';
+import Marquee from '../components/Marquee.astro';
+import Media from '../components/Media.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import SectionHead from '../components/SectionHead.astro';
-import SectorIcon from '../components/SectorIcon.astro';
 
 import { site } from '../data/site';
+import { image } from '../data/images';
 import { serviceGroups, serviceCount } from '../data/services';
 import { sectors } from '../data/sectors';
 import { evolution } from '../data/history';
@@ -15,64 +17,114 @@ import { certifications } from '../data/certifications';
 import { getProjects } from '../data/projects';
 
 const projects = await getProjects();
-const featured = projects.filter((project) => project.data.featured).slice(0, 3);
+const [leadProject, ...sideProjects] = projects.filter((project) => project.data.featured).slice(0, 3);
 
-// "47 Years of Building Trust." becomes two sentences, each broken after "of" so the lines stack in parallel.
-const taglineLines = site.tagline
-  .split('. ')
-  .map((sentence) => (sentence.endsWith('.') ? sentence : `${sentence}.`))
-  .map((sentence) => sentence.split(/(?<= of) /));
+// "47 Years of Building Trust." is the headline; the second sentence of the tagline closes the page intro.
+const [headline, promise] = site.tagline.split('. ').map((sentence) => (sentence.endsWith('.') ? sentence : `${sentence}.`));
+const [headlineTop, headlineRest] = headline.split(/(?<= of) /);
+const headlineWords = headlineRest.split(' ');
+const headlineLast = headlineWords.pop();
 
 const stats = [
-  { value: String(site.founded), label: 'Established in Dubai' },
-  { value: `${site.years}+`, count: site.years, suffix: '+', label: 'Years of building trust' },
-  { value: String(serviceCount), count: serviceCount, label: 'Services under one roof' },
-  { value: String(sectors.length), count: sectors.length, label: 'Sectors served' },
+  { icon: 'flag-banner', value: String(site.founded), label: 'Established in Dubai' },
+  { icon: 'handshake', value: `${site.years}+`, count: site.years, suffix: '+', label: 'Years of building trust' },
+  { icon: 'toolbox', value: String(serviceCount), count: serviceCount, label: 'Services under one roof' },
+  { icon: 'buildings', value: String(sectors.length), count: sectors.length, label: 'Sectors served' },
 ];
+
+const allServices = serviceGroups.flatMap((group) => group.services.map((service) => service.name));
 ---
 
 <Base title={`${site.name} | Construction Company in Dubai, UAE`} fullTitle>
   <section class="hero theme-dark">
-    <div class="container hero__grid">
-      <div class="hero__copy">
-        <h1 class="hero__title">
-          <span class="label rise">{site.name} · {site.locality}, UAE</span>
+    <div class="hero__backdrop" aria-hidden="true">
+      <Media src={image('hero-home')} alt="" ratio="fill" sizes="100vw" position="72% center" eager />
+    </div>
 
-          {
-            taglineLines.map((parts, index) => (
-              <span class:list={['display rise', { hero__accent: index === 1 }]} style={`--d:${index + 1}`}>
-                {parts.map((part) => (
-                  <span class="hero__line">{part} </span>
-                ))}
-              </span>
-            ))
-          }
-        </h1>
+    <div class="container hero__inner">
+      <p class="label rise">{site.locality}, UAE · Since {site.founded}</p>
 
-        <p class="lede rise" style="--d:3">
-          A Dubai construction company established in {site.founded}. We deliver civil works, buildings, MEP, fit-out and specialist finishes across the UAE.
-        </p>
+      <h1 class="display hero__title">
+        <span class="visually-hidden">{site.name}: </span>
+        <span class="line-mask" style="--d:1"><span>{headlineTop} </span></span>
+        <span class="line-mask" style="--d:2"><span>{headlineWords.join(' ')} <span class="hero__accent">{headlineLast}</span></span></span>
+      </h1>
 
-        <div class="hero__actions rise" style="--d:4">
-          <a class="btn" href="/services/">
-            Explore our services
+      <div class="hero__foot rise" style="--d:6">
+        <div class="hero__actions">
+          <a class="btn" href="/projects/">
+            Explore our work
             <Arrow />
           </a>
 
-          <a class="btn btn--ghost" href="/projects/">View projects</a>
+          <a class="btn btn--ghost" href="/services/">What we do</a>
         </div>
+
+        <a class="hero__scroll" href="#intro">
+          <span>Scroll</span>
+          <i aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <Marquee items={allServices} />
+
+  <section class="section" id="intro">
+    <div class="container intro">
+      <div class="intro__media">
+        <div data-reveal="wipe">
+          <Media src={image('about-site')} alt="Two site engineers reviewing drawings in front of a building under construction" ratio="4 / 5" sizes="(min-width: 64rem) 42vw, 100vw" />
+        </div>
+
+        <p class="intro__badge" data-reveal style="--i:4">
+          <strong>{site.years}</strong>
+          <span>years in the UAE</span>
+        </p>
       </div>
 
-      <div class="hero__art">
-        <ElevationDrawing />
+      <div class="intro__body">
+        <SectionHead label="Who we are" title="From a coating contractor to a full-fledged construction company.">
+          <p class="lede">
+            Established in {site.founded}, we have grown alongside Dubai for {site.years} years. <span class="intro__promise">{promise}</span>
+          </p>
+        </SectionHead>
+
+        <ol class="evolution" role="list">
+          {
+            evolution.map((step, index) => (
+              <li data-reveal style={`--i:${index}`}>
+                <span class="evolution__icon">
+                  <Icon name={step.icon} />
+                </span>
+
+                <strong>{step.label}</strong>
+                <span class="muted">{step.note}</span>
+              </li>
+            ))
+          }
+        </ol>
+
+        <p class="intro__links" data-reveal>
+          <a class="btn" href="/about/">
+            About the company
+            <Arrow />
+          </a>
+
+          <a class="arrow-link" href="/about/history/">
+            Our history
+            <Arrow />
+          </a>
+        </p>
       </div>
     </div>
 
     <div class="container">
-      <dl class="stats rise" style="--d:6">
+      <dl class="stats">
         {
-          stats.map((stat) => (
-            <div class="stats__item">
+          stats.map((stat, index) => (
+            <div class="stats__item" data-reveal style={`--i:${index}`}>
+              <Icon name={stat.icon} />
               <dt>{stat.label}</dt>
 
               <dd data-count={stat.count} data-suffix={stat.suffix}>
@@ -85,55 +137,13 @@ const stats = [
     </div>
   </section>
 
-  <section class="section">
-    <div class="container intro">
-      <SectionHead label="Who we are" title="From a coating contractor to a full-fledged construction company." />
-
-      <div class="intro__body">
-        <div class="stack" data-reveal>
-          <p class="intro__lead">
-            What began as a humble coating contracting company metamorphosed into a civil maintenance company and further grew into a full-fledged construction company from where we have been marching forward ever since.
-          </p>
-
-          <p class="muted">
-            Over the past {site.years} years, we have witnessed and been part of Dubai's remarkable transformation into one of the world's most dynamic cities. Our history is not simply measured in years, but in the trust we have earned, the relationships we have built, and the lasting contributions we continue to make.
-          </p>
-        </div>
-
-        <ol class="evolution" role="list">
-          {
-            evolution.map((step, index) => (
-              <li data-reveal style={`--i:${index + 1}`}>
-                <span class="evolution__node" aria-hidden="true" />
-                <strong>{step.label}</strong>
-                <span class="muted">{step.note}</span>
-              </li>
-            ))
-          }
-        </ol>
-
-        <p class="intro__links" data-reveal>
-          <a class="arrow-link" href="/about/">
-            About the company
-            <Arrow />
-          </a>
-
-          <a class="arrow-link" href="/about/history/">
-            Our history
-            <Arrow />
-          </a>
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <section class="section theme-tint">
+  <section class="section theme-dark">
     <div class="container">
       <div class="split-head">
         <SectionHead
           label="Services"
           title="One contractor, from foundations to gold leaf."
-          lede={`${serviceCount} services across four disciplines, covering the full life of a building.`}
+          lede={`${serviceCount} services across four disciplines.`}
         />
 
         <a class="arrow-link" href="/services/" data-reveal>
@@ -142,23 +152,28 @@ const stats = [
         </a>
       </div>
 
-      <ul class="schedule" role="list">
+      <ul class="panels" role="list" data-reveal>
         {
-          serviceGroups.map((group, index) => (
-            <li data-reveal style={`--i:${index}`}>
-              <a class="schedule__row" href={`/services/#${group.id}`}>
-                <span class="schedule__bubble" aria-hidden="true">
-                  {group.letter}
+          serviceGroups.map((group) => (
+            <li class="panel">
+              <a class="panel__link" href={`/services/#${group.id}`}>
+                <Media src={image(group.image)} alt="" ratio="fill" sizes="(min-width: 60rem) 45vw, 100vw" />
+
+                <span class="panel__top">
+                  <span class="panel__letter">{group.letter}</span>
+                  <Icon name={group.icon} />
                 </span>
 
-                <span class="schedule__title">
+                <span class="panel__short" aria-hidden="true">
+                  {group.short}
+                </span>
+
+                <span class="panel__body">
                   <strong class="h3">{group.title}</strong>
                   <small>{group.services.length} services</small>
+
+                  <span class="panel__list">{group.services.map((service) => service.name).join(' · ')}</span>
                 </span>
-
-                <span class="schedule__list">{group.services.map((service) => service.name).join(' · ')}</span>
-
-                <Arrow />
               </a>
             </li>
           ))
@@ -167,29 +182,69 @@ const stats = [
     </div>
   </section>
 
-  <section class="section">
+  <section class="section sectors">
     <div class="container">
       <div class="split-head">
-        <SectionHead
-          label="Sectors"
-          title={`Experience across ${sectors.length} sectors.`}
-          lede="From infrastructure and fuel facilities to palatial villas and houses of worship."
-        />
+        <SectionHead label="Sectors" title={`Experience across ${sectors.length} sectors.`} />
 
-        <a class="arrow-link" href="/sectors/" data-reveal>
+        <div class="rail-controls" data-reveal>
+          <button type="button" data-rail-prev aria-label="Previous sectors">
+            <Icon name="arrow-left-bold" />
+          </button>
+
+          <button type="button" data-rail-next aria-label="Next sectors">
+            <Icon name="arrow-right-bold" />
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <ul class="rail" role="list" data-rail>
+      {
+        sectors.map((sector, index) => (
+          <li data-reveal style={`--i:${Math.min(index, 5)}`}>
+            <a class="sector-card" href={`/sectors/#${sector.id}`}>
+              <Media src={image(sector.image)} alt="" ratio="fill" sizes="(min-width: 64rem) 22vw, 70vw" />
+
+              <span class="sector-card__icon">
+                <Icon name={sector.icon} />
+              </span>
+
+              <span class="sector-card__name">{sector.name}</span>
+            </a>
+          </li>
+        ))
+      }
+
+      <li class="rail__end">
+        <a class="arrow-link" href="/sectors/">
           All sectors
+          <Arrow />
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section class="section theme-tint">
+    <div class="container">
+      <div class="split-head">
+        <SectionHead label="Projects" title="Work in progress, work delivered." />
+
+        <a class="arrow-link" href="/projects/" data-reveal>
+          All projects
           <Arrow />
         </a>
       </div>
 
-      <ul class="sector-grid" role="list">
+      <ul class="featured" role="list">
+        <li class="featured__lead" data-reveal>
+          <ProjectCard project={leadProject} ratio="5 / 4" sizes="(min-width: 64rem) 55vw, 100vw" />
+        </li>
+
         {
-          sectors.map((sector, index) => (
-            <li data-reveal style={`--i:${index % 7}`}>
-              <a class="sector-tile" href={`/sectors/#${sector.id}`}>
-                <SectorIcon icon={sector.icon} />
-                <span>{sector.name}</span>
-              </a>
+          sideProjects.map((project, index) => (
+            <li data-reveal style={`--i:${index + 1}`}>
+              <ProjectCard project={project} ratio="16 / 9" sizes="(min-width: 64rem) 38vw, 100vw" />
             </li>
           ))
         }
@@ -199,15 +254,15 @@ const stats = [
 
   <section class="section quote theme-dark">
     <div class="container quote__inner">
-      <p class="label" data-reveal>Message from the Managing Director</p>
+      <Icon name="quotes-fill" class="quote__mark" />
 
-      <blockquote class="quote__text" data-reveal style="--i:1">
+      <blockquote class="quote__text h2" data-reveal>
         <p>
           Every project we undertake is more than just a structure; it is a responsibility, a commitment, and an opportunity to create something lasting.
         </p>
       </blockquote>
 
-      <div class="quote__foot" data-reveal style="--i:2">
+      <div class="quote__foot" data-reveal style="--i:1">
         <p>
           <strong>John Kurien</strong>
           <span class="muted">Managing Director</span>
@@ -221,35 +276,19 @@ const stats = [
     </div>
   </section>
 
-  <section class="section">
-    <div class="container">
-      <div class="split-head">
-        <SectionHead label="Projects" title="Work in progress, work delivered." lede="A selection of ongoing, completed and upcoming projects." />
-
-        <a class="arrow-link" href="/projects/" data-reveal>
-          All projects
-          <Arrow />
-        </a>
-      </div>
-
-      <ul class="project-grid" role="list">
-        {
-          featured.map((project, index) => (
-            <li data-reveal style={`--i:${index}`}>
-              <ProjectCard project={project} />
-            </li>
-          ))
-        }
-      </ul>
-    </div>
-  </section>
-
-  <section class="certs theme-tint">
+  <section class="certs">
     <div class="container certs__inner" data-reveal>
       <p class="label">Certifications</p>
 
       <ul class="certs__list" role="list">
-        {certifications.map((certification) => <li>{certification.name}</li>)}
+        {
+          certifications.map((certification) => (
+            <li>
+              <Icon name={certification.icon} />
+              {certification.name}
+            </li>
+          ))
+        }
       </ul>
 
       <a class="arrow-link" href="/certifications/">
@@ -263,123 +302,144 @@ const stats = [
 </Base>
 
 <style>
-  /* Hero */
+  /* ------------------------------------------------------------------------
+     Hero: one photograph, one line, two actions.
+     ------------------------------------------------------------------------ */
 
   .hero {
     position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: max(34rem, 100svh);
     overflow: hidden;
-    padding-top: calc(var(--header-h) + clamp(2rem, 1rem + 4vw, 4.5rem));
+    padding-block: calc(var(--header-h) + 3rem) clamp(2rem, 1.25rem + 3vw, 4rem);
+    background: var(--ink-950);
   }
 
-  .hero__grid {
-    display: grid;
-    gap: 2.5rem;
-    align-items: center;
+  .hero__backdrop {
+    position: absolute;
+    inset: 0;
   }
 
-  .hero__copy {
+  .hero__backdrop :global(img) {
+    animation: hero-settle 2.6s var(--ease-out) both;
+  }
+
+  .hero__backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+
+    background:
+      linear-gradient(to top, var(--ink-950) 0%, color-mix(in srgb, var(--ink-950) 55%, transparent) 38%, transparent 68%),
+      linear-gradient(to right, color-mix(in srgb, var(--ink-950) 62%, transparent), transparent 62%),
+      linear-gradient(to bottom, color-mix(in srgb, var(--ink-950) 55%, transparent), transparent 22%);
+  }
+
+  @keyframes hero-settle {
+    from {
+      transform: scale(1.12);
+    }
+  }
+
+  /* The picture drifts a little slower than the page as it scrolls away. */
+
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .hero__backdrop {
+        animation: hero-drift linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 100svh;
+      }
+    }
+  }
+
+  @keyframes hero-drift {
+    to {
+      transform: translateY(14%);
+    }
+  }
+
+  .hero__inner {
+    position: relative;
     display: grid;
-    justify-items: start;
-    gap: 1.75rem;
+    gap: clamp(1.25rem, 2.5vw, 2rem);
   }
 
   .hero__title {
     display: grid;
-    justify-items: start;
-  }
-
-  .hero__title .label {
-    margin-bottom: 1.6rem;
-  }
-
-  .hero__title .display {
-    font-size: clamp(1.9rem, 8.4vw, 4.3rem);
-  }
-
-  .hero__line {
-    display: block;
-    white-space: nowrap;
+    font-size: clamp(2.4rem, 11.2vw, 7.75rem);
   }
 
   .hero__accent {
     color: var(--accent);
   }
 
+  .hero__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem 3rem;
+    margin-top: clamp(0.5rem, 2vw, 1.5rem);
+    padding-top: clamp(1.25rem, 2.5vw, 2rem);
+    border-top: 1px solid var(--line-strong);
+  }
+
   .hero__actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-top: 0.5rem;
   }
 
-  .hero__art {
-    width: min(100%, 34rem);
-    margin-inline: auto;
+  .hero__scroll {
+    display: none;
+    align-items: center;
+    gap: 0.9rem;
+
+    font-size: 0.75rem;
+    font-weight: 650;
+    font-stretch: 112%;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
   }
 
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
-    border-top: 1px solid var(--line-strong);
+  .hero__scroll i {
+    position: relative;
+    width: 1px;
+    height: 3.25rem;
+    overflow: hidden;
+    background: var(--line-strong);
   }
 
-  .stats__item {
-    display: flex;
-    flex-direction: column-reverse;
-    gap: 0.35rem;
-    padding: 1.4rem 1rem 1.6rem 0;
-    border-bottom: 1px solid var(--line);
+  .hero__scroll i::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    animation: scroll-cue 2.2s var(--ease-in-out) infinite;
   }
 
-  .stats dd {
-    font-family: var(--font-display);
-    font-size: clamp(2rem, 1.5rem + 2vw, 3.1rem);
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums lining-nums;
-  }
+  @keyframes scroll-cue {
+    from {
+      transform: translateY(-100%);
+    }
 
-  .stats dt {
-    font-size: 0.875rem;
-    color: var(--fg-muted);
+    to {
+      transform: translateY(100%);
+    }
   }
 
   @media (min-width: 48rem) {
-    .stats {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-    .stats__item {
-      padding-left: 1.5rem;
-      border-bottom: 0;
-      border-left: 1px solid var(--line);
-    }
-
-    .stats__item:first-child {
-      padding-left: 0;
-      border-left: 0;
+    .hero__scroll {
+      display: inline-flex;
     }
   }
 
-  @media (min-width: 64rem) {
-    .hero__grid {
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr);
-      gap: clamp(2rem, 4vw, 4rem);
-    }
-
-    .hero__title .display {
-      font-size: clamp(2.6rem, 5vw, 4.3rem);
-    }
-
-    .hero__art {
-      width: 100%;
-      margin: 0;
-    }
-  }
-
-  /* Shared section heads with a trailing link */
+  /* ------------------------------------------------------------------------
+     Shared: section head with a trailing link
+     ------------------------------------------------------------------------ */
 
   .split-head {
     display: flex;
@@ -387,72 +447,102 @@ const stats = [
     align-items: flex-end;
     justify-content: space-between;
     gap: 1.5rem 3rem;
-    margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
+    margin-bottom: clamp(2.25rem, 4.5vw, 4rem);
   }
 
-  /* Intro */
+  /* ------------------------------------------------------------------------
+     Intro
+     ------------------------------------------------------------------------ */
 
   .intro {
     display: grid;
     gap: 3rem;
-    align-items: start;
+    align-items: center;
+  }
+
+  .intro__media {
+    position: relative;
+  }
+
+  .intro__media :global(.media) {
+    border-radius: var(--radius-lg);
+  }
+
+  .intro__badge {
+    position: absolute;
+    right: -0.5rem;
+    bottom: -1.5rem;
+    display: grid;
+    align-content: center;
+    gap: 0.2rem;
+    width: clamp(8.5rem, 16vw, 11.5rem);
+    aspect-ratio: 1;
+    padding: 1.1rem;
+    border-radius: var(--radius-lg);
+
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .intro__badge strong {
+    font-size: clamp(3rem, 6vw, 4.75rem);
+    font-weight: 800;
+    font-stretch: 125%;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+  }
+
+  .intro__badge span {
+    font-size: 0.8125rem;
+    font-weight: 650;
+    font-stretch: 110%;
+    line-height: 1.25;
   }
 
   .intro__body {
     display: grid;
-    gap: 2.75rem;
+    gap: 2.5rem;
   }
 
-  .intro__lead {
-    font-size: var(--step-1);
-    line-height: 1.55;
+  .intro__promise {
+    color: var(--fg);
+    font-weight: 600;
   }
 
   .intro__links {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem 2.25rem;
+    align-items: center;
+    gap: 1rem 2rem;
   }
 
   .evolution {
     display: grid;
-    gap: 0;
+    gap: 1.25rem;
     margin: 0;
   }
 
   .evolution li {
-    position: relative;
     display: grid;
-    gap: 0.15rem;
-    padding: 0 0 1.5rem 2rem;
-    border-left: 1px solid var(--line-strong);
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 1rem;
+    align-items: center;
   }
 
-  .evolution li:last-child {
-    padding-bottom: 0;
-    border-left-color: transparent;
-  }
-
-  .evolution__node {
-    position: absolute;
-    top: 0.35rem;
-    left: -0.3125rem;
-    width: 0.5625rem;
-    height: 0.5625rem;
-
-    background: var(--bg);
-    border: 1px solid var(--accent-line);
+  .evolution__icon {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
     border-radius: 50%;
-  }
-
-  .evolution li:last-child .evolution__node {
-    background: var(--accent-line);
+    background: var(--paper-2);
+    color: var(--accent-text);
   }
 
   .evolution strong {
-    font-family: var(--font-display);
-    font-size: 1.125rem;
-    font-weight: 500;
+    font-weight: 680;
+    font-stretch: 110%;
     line-height: 1.3;
   }
 
@@ -465,213 +555,410 @@ const stats = [
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .evolution li,
-    .evolution li:last-child {
-      padding: 1.5rem 1.5rem 0 0;
-      border-left: 0;
-      border-top: 1px solid var(--line-strong);
+    .evolution li {
+      grid-template-columns: 1fr;
+      row-gap: 0.2rem;
+      padding-top: 1.25rem;
+      border-top: 2px solid var(--line);
     }
 
-    .evolution__node {
-      top: -0.3125rem;
-      left: 0;
+    .evolution li:last-child {
+      border-top-color: var(--accent);
+    }
+
+    .evolution__icon {
+      grid-row: auto;
+      margin-bottom: 0.6rem;
     }
   }
 
   @media (min-width: 64rem) {
     .intro {
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-      gap: clamp(3rem, 7vw, 7rem);
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: clamp(3.5rem, 7vw, 7rem);
+    }
+
+    .intro__badge {
+      right: -2rem;
     }
   }
 
-  /* Services schedule */
+  /* Stats */
 
-  .schedule {
-    margin: 0;
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1.5rem;
+    margin: clamp(4.5rem, 8vw, 7.5rem) 0 0;
+    padding-top: clamp(2rem, 4vw, 3rem);
     border-top: 1px solid var(--line-strong);
   }
 
-  .schedule__row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0.9rem 1.25rem;
-    padding: 1.6rem 0.25rem;
-    border-bottom: 1px solid var(--line);
-
-    text-decoration: none;
-    transition:
-      padding 0.5s var(--ease-out),
-      background-color 0.4s var(--ease-out);
+  .stats__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
-  .schedule__bubble {
-    display: grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border: 1px solid var(--accent-line);
-    border-radius: 50%;
-
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--accent);
-    transition:
-      background-color 0.4s var(--ease-out),
-      color 0.4s var(--ease-out);
+  .stats__item :global(.icon) {
+    order: -2;
+    width: 1.75rem;
+    height: 1.75rem;
+    color: var(--accent-text);
   }
 
-  .schedule__title {
-    display: grid;
-    gap: 0.2rem;
+  .stats dd {
+    order: -1;
+    font-size: clamp(2.75rem, 1.6rem + 5vw, 5.75rem);
+    font-weight: 800;
+    font-stretch: 125%;
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    font-variant-numeric: tabular-nums lining-nums;
   }
 
-  .schedule__title small {
-    font-size: 0.8125rem;
+  .stats dt {
+    font-size: 0.9375rem;
     color: var(--fg-muted);
   }
 
-  .schedule__list {
-    grid-column: 2 / -1;
-    font-size: 0.9375rem;
-    line-height: 1.7;
-    color: var(--fg-muted);
-  }
-
-  .schedule__row :global(svg) {
-    grid-row: 1;
-    grid-column: 3;
-    width: 1.3rem;
-    height: 1.3rem;
-    color: var(--accent);
-    transition: transform 0.5s var(--ease-out);
-  }
-
-  .schedule__row:hover {
-    padding-inline: 1rem 0.75rem;
-    background: rgb(255 255 255 / 0.5);
-  }
-
-  .schedule__row:hover .schedule__bubble {
-    background: var(--ink-900);
-    border-color: var(--ink-900);
-    color: var(--brass-300);
-  }
-
-  .schedule__row:hover :global(svg) {
-    transform: translateX(0.35rem);
-  }
-
-  @media (min-width: 60rem) {
-    .schedule__row {
-      grid-template-columns: auto minmax(0, 0.8fr) minmax(0, 1.3fr) auto;
-      gap: 2rem;
-      padding-block: 2rem;
-    }
-
-    .schedule__list {
-      grid-column: auto;
-    }
-
-    .schedule__row :global(svg) {
-      grid-column: 4;
-    }
-  }
-
-  /* Sectors */
-
-  .sector-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin: 0;
-    border-top: 1px solid var(--line);
-    border-left: 1px solid var(--line);
-  }
-
-  .sector-grid li {
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-  }
-
-  .sector-tile {
-    display: grid;
-    align-content: space-between;
-    gap: 1.75rem;
-    height: 100%;
-    min-height: 10.5rem;
-    padding: 1.4rem 1.25rem;
-
-    font-size: 0.9375rem;
-    font-weight: 500;
-    line-height: 1.3;
-    text-decoration: none;
-    color: var(--fg);
-
-    transition:
-      background-color 0.4s var(--ease-out),
-      color 0.4s var(--ease-out);
-  }
-
-  .sector-tile :global(svg) {
-    color: var(--ink-700);
-    transition:
-      transform 0.6s var(--ease-out),
-      color 0.4s var(--ease-out);
-  }
-
-  .sector-tile:hover {
-    background: var(--ink-900);
-    color: var(--on-dark);
-  }
-
-  .sector-tile:hover :global(svg) {
-    color: var(--brass-300);
-    transform: translateY(-0.3rem);
-  }
-
-  @media (min-width: 40rem) {
-    .sector-grid {
+  @media (min-width: 52rem) {
+    .stats {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
 
-  @media (min-width: 72rem) {
-    .sector-grid {
-      grid-template-columns: repeat(7, minmax(0, 1fr));
+  /* ------------------------------------------------------------------------
+     Services: four panels that open on hover
+     ------------------------------------------------------------------------ */
+
+  .panels {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .panel__link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    height: 100%;
+    min-height: 19rem;
+    overflow: hidden;
+    padding: 1.4rem;
+    border-radius: var(--radius-lg);
+
+    text-decoration: none;
+    isolation: isolate;
+  }
+
+  .panel__link :global(.media) {
+    z-index: -1;
+  }
+
+  .panel__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+
+    background: linear-gradient(to top, var(--ink-950) 6%, color-mix(in srgb, var(--ink-950) 58%, transparent) 55%, color-mix(in srgb, var(--ink-950) 30%, transparent));
+  }
+
+  .panel__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel__letter {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 750;
+    font-stretch: 115%;
+  }
+
+  .panel__top :global(.icon) {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .panel__body {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .panel__body small {
+    font-size: 0.8438rem;
+    color: var(--fg-muted);
+  }
+
+  .panel__list {
+    margin-top: 0.6rem;
+    font-size: 0.9063rem;
+    line-height: 1.6;
+    color: color-mix(in srgb, var(--on-dark) 84%, transparent);
+  }
+
+  .panel__short {
+    display: none;
+  }
+
+  @media (min-width: 60rem) {
+    .panels {
+      display: flex;
+      height: clamp(30rem, 62vh, 38rem);
+    }
+
+    .panel {
+      flex: 1 1 0;
+      min-width: 0;
+      transition: flex-grow 0.8s var(--ease-out);
+    }
+
+    /* The first panel stays open until another is hovered or focused. */
+
+    .panels:not(:hover, :focus-within) .panel:first-child,
+    .panel:hover,
+    .panel:focus-within {
+      flex-grow: 3.4;
+    }
+
+    .panel__top :global(.icon) {
+      opacity: 0;
+      transition: opacity 0.4s var(--ease-out);
+    }
+
+    /* Closed: the short name reads up the side. Open: the full detail fades in. */
+
+    .panel__short {
+      position: absolute;
+      left: 1.4rem;
+      bottom: 1.4rem;
+      display: block;
+
+      font-size: 1.5rem;
+      font-weight: 740;
+      font-stretch: 118%;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      transition: opacity 0.35s var(--ease-out);
+    }
+
+    .panel__body {
+      position: absolute;
+      left: 1.4rem;
+      bottom: 1.4rem;
+      width: min(27rem, 38vw);
+
+      opacity: 0;
+      transform: translateY(0.75rem);
+      transition:
+        opacity 0.25s var(--ease-out),
+        transform 0.25s var(--ease-out);
+    }
+
+    .panels:not(:hover, :focus-within) .panel:first-child .panel__short,
+    .panel:hover .panel__short,
+    .panel:focus-within .panel__short {
+      opacity: 0;
+    }
+
+    .panels:not(:hover, :focus-within) .panel:first-child .panel__body,
+    .panel:hover .panel__body,
+    .panel:focus-within .panel__body,
+    .panels:not(:hover, :focus-within) .panel:first-child .panel__top :global(.icon),
+    .panel:hover .panel__top :global(.icon),
+    .panel:focus-within .panel__top :global(.icon) {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity 0.6s var(--ease-out) 0.3s,
+        transform 0.6s var(--ease-out) 0.3s;
     }
   }
 
-  /* Quote */
+  /* ------------------------------------------------------------------------
+     Sectors: a rail of picture cards that runs off the right edge
+     ------------------------------------------------------------------------ */
 
-  .quote {
-    position: relative;
+  .sectors {
+    overflow: hidden;
   }
+
+  .rail-controls {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .rail-controls button {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+
+    background: none;
+    cursor: pointer;
+    transition:
+      background-color 0.3s var(--ease-out),
+      border-color 0.3s var(--ease-out),
+      color 0.3s var(--ease-out),
+      opacity 0.3s;
+  }
+
+  .rail-controls button:hover:not(:disabled) {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .rail-controls button:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .rail-controls :global(.icon) {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .rail {
+    --edge: max(var(--gutter), (100vw - var(--max)) / 2);
+
+    display: flex;
+    gap: 0.9rem;
+    margin: 0;
+    padding-inline: var(--edge);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--edge);
+    scrollbar-width: none;
+  }
+
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rail > li {
+    flex: none;
+    width: clamp(14.5rem, 22vw, 19rem);
+    scroll-snap-align: start;
+  }
+
+  .sector-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    padding: 1.1rem;
+    border-radius: var(--radius-lg);
+
+    color: var(--on-dark);
+    text-decoration: none;
+    isolation: isolate;
+  }
+
+  .sector-card :global(.media) {
+    z-index: -1;
+  }
+
+  .sector-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(to top, var(--ink-950) 0%, color-mix(in srgb, var(--ink-950) 20%, transparent) 55%, color-mix(in srgb, var(--ink-950) 30%, transparent));
+  }
+
+  .sector-card__icon {
+    display: grid;
+    place-items: center;
+    width: 2.9rem;
+    height: 2.9rem;
+    border-radius: 50%;
+
+    background: color-mix(in srgb, var(--ink-950) 55%, transparent);
+    backdrop-filter: blur(8px);
+    transition:
+      background-color 0.4s var(--ease-out),
+      color 0.4s var(--ease-out);
+  }
+
+  .sector-card:hover .sector-card__icon {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .sector-card__name {
+    font-size: 1.1875rem;
+    font-weight: 700;
+    font-stretch: 114%;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .rail > .rail__end {
+    display: grid;
+    place-items: center;
+    width: 12rem;
+  }
+
+  /* ------------------------------------------------------------------------
+     Featured projects
+     ------------------------------------------------------------------------ */
+
+  .featured {
+    display: grid;
+    gap: 2.75rem 1.5rem;
+    margin: 0;
+  }
+
+  @media (min-width: 64rem) {
+    .featured {
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    }
+
+    .featured__lead {
+      grid-row: span 2;
+    }
+  }
+
+  /* ------------------------------------------------------------------------
+     Quote
+     ------------------------------------------------------------------------ */
 
   .quote__inner {
     display: grid;
     justify-items: start;
-    gap: 2.25rem;
+    gap: 2rem;
+  }
+
+  .quote__inner :global(.quote__mark) {
+    width: 3.5rem;
+    height: 3.5rem;
+    color: var(--accent);
   }
 
   .quote__text {
-    max-width: 22em;
-
-    font-family: var(--font-display);
-    font-size: var(--step-3);
-    font-weight: 400;
-    line-height: 1.22;
-    letter-spacing: -0.012em;
-  }
-
-  .quote__text p::before {
-    content: '\201C';
-    color: var(--accent);
-  }
-
-  .quote__text p::after {
-    content: '\201D';
-    color: var(--accent);
+    max-width: 21em;
   }
 
   .quote__foot {
@@ -690,35 +977,22 @@ const stats = [
     gap: 0.1rem;
   }
 
+  .quote__foot strong {
+    font-weight: 700;
+    font-stretch: 112%;
+  }
+
   .quote__foot .muted {
     font-size: 0.875rem;
   }
 
-  /* Projects */
-
-  .project-grid {
-    display: grid;
-    gap: 3rem 2rem;
-    margin: 0;
-  }
-
-  @media (min-width: 40rem) {
-    .project-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (min-width: 64rem) {
-    .project-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  /* Certifications strip */
+  /* ------------------------------------------------------------------------
+     Certifications strip
+     ------------------------------------------------------------------------ */
 
   .certs {
     padding-block: 2.25rem;
-    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
   }
 
   .certs__inner {
@@ -732,11 +1006,20 @@ const stats = [
   .certs__list {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 2.25rem;
+    gap: 0.75rem 2.25rem;
     margin: 0;
 
-    font-family: var(--font-display);
-    font-size: 1.125rem;
-    font-weight: 500;
+    font-weight: 680;
+    font-stretch: 112%;
+  }
+
+  .certs__list li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .certs__list :global(.icon) {
+    color: var(--accent-text);
   }
 </style>

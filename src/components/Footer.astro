@@ -1,6 +1,7 @@
 ---
 import Brand from './Brand.astro';
 import Arrow from './Arrow.astro';
+import Icon from './Icon.astro';
 import { site, contact, footerNav, groupCompanies } from '../data/site';
 
 const year = new Date().getFullYear();
@@ -10,7 +11,7 @@ const mottoLines = site.motto.split('. ').map((line) => (line.endsWith('.') ? li
 <footer class="site-footer theme-dark">
   <div class="container">
     <div class="site-footer__top">
-      <p class="site-footer__motto">
+      <p class="site-footer__motto h2">
         {mottoLines.map((line) => <span>{line}</span>)}
       </p>
 
@@ -24,19 +25,23 @@ const mottoLines = site.motto.split('. ').map((line) => (line.endsWith('.') ? li
       <div class="site-footer__about">
         <Brand />
 
-        <p class="muted">A Dubai construction company, building trust since {site.founded}.</p>
+        <address>
+          <span>
+            <Icon name="map-pin" />
+            {site.locality}, {site.country}
+          </span>
 
-        <address class="muted">
-          {site.locality}, {site.country}
-          <br />
-          <a href={`mailto:${contact.email}`}>{contact.email}</a>
+          <a href={`mailto:${contact.email}`}>
+            <Icon name="envelope-simple" />
+            {contact.email}
+          </a>
 
           {
             contact.phone && (
-              <Fragment>
-                <br />
-                <a href={`tel:${contact.phone.replace(/\s+/g, '')}`}>{contact.phone}</a>
-              </Fragment>
+              <a href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`}>
+                <Icon name="phone" />
+                {contact.phone}
+              </a>
             )
           }
         </address>
@@ -72,13 +77,18 @@ const mottoLines = site.motto.split('. ').map((line) => (line.endsWith('.') ? li
       <p>Established {site.founded} · {site.locality}, UAE</p>
     </div>
   </div>
+
+  <div class="site-footer__wordmark" data-text={site.shortName} aria-hidden="true"></div>
 </footer>
 
 <style>
   .site-footer {
     --bg: var(--ink-950);
+
+    position: relative;
+    overflow: hidden;
     background: var(--bg);
-    padding-block: clamp(3.5rem, 2rem + 6vw, 6.5rem) 2rem;
+    padding-top: clamp(3.5rem, 2rem + 6vw, 6.5rem);
   }
 
   .site-footer__top {
@@ -94,12 +104,6 @@ const mottoLines = site.motto.split('. ').map((line) => (line.endsWith('.') ? li
 
   .site-footer__motto {
     display: grid;
-
-    font-family: var(--font-display);
-    font-size: var(--step-3);
-    font-weight: 500;
-    line-height: 1.14;
-    letter-spacing: -0.015em;
   }
 
   .site-footer__motto span:last-child {
@@ -116,20 +120,39 @@ const mottoLines = site.motto.split('. ').map((line) => (line.endsWith('.') ? li
   .site-footer__about {
     grid-column: 1 / -1;
     display: grid;
-    gap: 1.25rem;
+    gap: 1.5rem;
     align-content: start;
-    max-width: 22rem;
+    justify-items: start;
     font-size: 0.9375rem;
+  }
+
+  .site-footer address {
+    display: grid;
+    gap: 0.6rem;
+    color: var(--fg-muted);
+  }
+
+  .site-footer address > * {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .site-footer address :global(.icon) {
+    width: 1.15rem;
+    height: 1.15rem;
+    color: var(--accent);
   }
 
   .site-footer__title {
     margin-bottom: 1rem;
 
     font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
+    font-weight: 650;
+    font-stretch: 112%;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--fg);
   }
 
   .site-footer ul {
@@ -152,7 +175,11 @@ const mottoLines = site.motto.split('. ').map((line) => (line.endsWith('.') ? li
   }
 
   .site-footer .btn {
-    color: var(--btn-fg);
+    color: var(--on-accent);
+  }
+
+  .site-footer .btn:hover {
+    color: var(--bg);
   }
 
   .site-footer__base {
@@ -161,11 +188,33 @@ const mottoLines = site.motto.split('. ').map((line) => (line.endsWith('.') ? li
     justify-content: space-between;
     gap: 0.5rem 2rem;
 
-    padding-top: 1.5rem;
+    padding-block: 1.5rem;
     border-top: 1px solid var(--line);
 
     font-size: 0.8125rem;
     color: var(--fg-muted);
+  }
+
+  /* Oversized wordmark, cropped by the foot of the page. */
+
+  .site-footer__wordmark::before {
+    content: attr(data-text);
+  }
+
+  .site-footer__wordmark {
+    margin-bottom: -0.2em;
+
+    font-size: 10vw;
+    font-weight: 800;
+    font-stretch: 125%;
+    line-height: 0.8;
+    letter-spacing: -0.045em;
+    text-align: center;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--ink-800);
+
+    user-select: none;
   }
 
   @media (min-width: 48rem) {

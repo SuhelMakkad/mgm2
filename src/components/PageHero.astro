@@ -1,5 +1,6 @@
 ---
-import OrbitOrnament from './OrbitOrnament.astro';
+import Media from './Media.astro';
+import { image } from '../data/images';
 import type { Crumb } from '../layouts/Base.astro';
 
 interface Props {
@@ -7,13 +8,21 @@ interface Props {
   title: string;
   lede?: string;
   crumbs?: Crumb[];
+
+  /** File name in src/assets/images used as the backdrop. */
+  backdrop?: string;
+
+  /** CSS object-position for the backdrop crop. */
+  position?: string;
 }
 
-const { label, title, lede, crumbs = [] } = Astro.props;
+const { label, title, lede, crumbs = [], backdrop = 'cta-structure', position = 'center' } = Astro.props;
 ---
 
 <section class="page-hero theme-dark">
-  <OrbitOrnament />
+  <div class="page-hero__backdrop" aria-hidden="true">
+    <Media src={image(backdrop)} alt="" ratio="fill" sizes="100vw" position={position} eager />
+  </div>
 
   <div class="container page-hero__inner">
     {
@@ -33,10 +42,14 @@ const { label, title, lede, crumbs = [] } = Astro.props;
     }
 
     <p class="label rise" style="--d:1">{label}</p>
-    <h1 class="h1 rise" style="--d:2">{title}</h1>
-    {lede && <p class="lede rise" style="--d:3">{lede}</p>}
 
-    <div class="page-hero__extra rise" style="--d:4">
+    <h1 class="h1">
+      <span class="line-mask" style="--d:1"><span>{title}</span></span>
+    </h1>
+
+    {lede && <p class="lede rise" style="--d:4">{lede}</p>}
+
+    <div class="page-hero__extra rise" style="--d:5">
       <slot />
     </div>
   </div>
@@ -45,8 +58,36 @@ const { label, title, lede, crumbs = [] } = Astro.props;
 <style>
   .page-hero {
     position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: min(46rem, 74svh);
     overflow: hidden;
-    padding-block: calc(var(--header-h) + clamp(3rem, 2rem + 5vw, 6rem)) clamp(3.5rem, 2rem + 6vw, 6.5rem);
+    padding-block: calc(var(--header-h) + 4rem) clamp(3rem, 2rem + 4vw, 5.5rem);
+    background: var(--ink-950);
+  }
+
+  .page-hero__backdrop {
+    position: absolute;
+    inset: 0;
+    animation: backdrop-settle 2.4s var(--ease-out) both;
+  }
+
+  /* Scrim: dark at the foot for the copy, lighter at the top so the picture reads. */
+
+  .page-hero__backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+
+    background:
+      linear-gradient(to top, var(--ink-950) 2%, color-mix(in srgb, var(--ink-950) 72%, transparent) 42%, color-mix(in srgb, var(--ink-950) 30%, transparent) 100%),
+      linear-gradient(to right, color-mix(in srgb, var(--ink-950) 55%, transparent), transparent 70%);
+  }
+
+  @keyframes backdrop-settle {
+    from {
+      transform: scale(1.08);
+    }
   }
 
   .page-hero__inner {
@@ -57,19 +98,16 @@ const { label, title, lede, crumbs = [] } = Astro.props;
   }
 
   .page-hero .h1 {
-    max-width: 15em;
+    max-width: 14em;
   }
 
   .page-hero .lede {
-    max-width: 36em;
+    max-width: 34em;
+    color: color-mix(in srgb, var(--on-dark) 82%, transparent);
   }
 
   .page-hero__extra:empty {
     display: none;
-  }
-
-  .crumbs {
-    margin-bottom: 0.75rem;
   }
 
   .crumbs ol {
@@ -79,7 +117,7 @@ const { label, title, lede, crumbs = [] } = Astro.props;
     margin: 0;
 
     font-size: 0.8125rem;
-    color: var(--fg-muted);
+    color: color-mix(in srgb, var(--on-dark) 70%, transparent);
   }
 
   .crumbs li + li::before {

@@ -55,6 +55,30 @@ window.matchMedia('(min-width: 64rem)').addEventListener('change', (event) => {
   if (event.matches) setMenu(false);
 });
 
+/* Rails: horizontal scrollers with previous and next buttons in the same section. */
+
+for (const rail of document.querySelectorAll<HTMLElement>('[data-rail]')) {
+  const scope = rail.closest('section') ?? document;
+
+  const previous = scope.querySelector<HTMLButtonElement>('[data-rail-prev]');
+  const next = scope.querySelector<HTMLButtonElement>('[data-rail-next]');
+
+  const move = (direction: 1 | -1) => {
+    rail.scrollBy({ left: direction * rail.clientWidth * 0.8, behavior: reduceMotion ? 'auto' : 'smooth' });
+  };
+
+  const syncButtons = () => {
+    if (previous) previous.disabled = rail.scrollLeft <= 4;
+    if (next) next.disabled = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 4;
+  };
+
+  previous?.addEventListener('click', () => move(-1));
+  next?.addEventListener('click', () => move(1));
+
+  rail.addEventListener('scroll', syncButtons, { passive: true });
+  syncButtons();
+}
+
 /* Count-up figures: <span data-count="47" data-suffix="+">47+</span> */
 
 const runCount = (element: HTMLElement) => {

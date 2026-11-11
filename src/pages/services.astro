@@ -1,9 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
 import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import Media from '../components/Media.astro';
 import PageHero from '../components/PageHero.astro';
 
 import { site } from '../data/site';
+import { image } from '../data/images';
 import { serviceGroups, serviceCount } from '../data/services';
 
 const crumbs = [{ label: 'Services', href: '/services/' }];
@@ -30,8 +33,9 @@ const catalogue = {
 >
   <PageHero
     label="Services"
-    title="One contractor, from foundations to gold leaf."
-    lede={`${serviceCount} services across four disciplines. The company began in coatings, grew into maintenance and then into full construction, and it still practises all three.`}
+    title="From foundations to gold leaf."
+    lede={`${serviceCount} services across four disciplines, from one contractor.`}
+    backdrop="svc-construction"
     crumbs={crumbs}
   >
     <ul class="index" role="list">
@@ -39,10 +43,7 @@ const catalogue = {
         serviceGroups.map((group) => (
           <li>
             <a href={`#${group.id}`}>
-              <span class="index__letter" aria-hidden="true">
-                {group.letter}
-              </span>
-
+              <Icon name={group.icon} />
               {group.title}
             </a>
           </li>
@@ -54,20 +55,27 @@ const catalogue = {
   {
     serviceGroups.map((group, groupIndex) => (
       <section class:list={['section group', { 'theme-tint': groupIndex % 2 === 1 }]} id={group.id}>
-        <div class="container group__inner">
-          <header class="group__head" data-reveal>
-            <span class="group__bubble" aria-hidden="true">
-              {group.letter}
-            </span>
+        <div class="container">
+          <header class="group__head" data-side={groupIndex % 2 === 0 ? 'left' : 'right'}>
+            <div class="group__media" data-reveal="wipe">
+              <Media src={image(group.image)} alt="" ratio="16 / 10" sizes="(min-width: 64rem) 50vw, 100vw" />
+              <span class="group__letter">{group.letter}</span>
+            </div>
 
-            <h2 class="h2">{group.title}</h2>
-            <p class="lede">{group.summary}</p>
-            <p class="group__count">{group.services.length} services</p>
+            <div class="group__intro" data-reveal>
+              <p class="label">{group.services.length} services</p>
+              <h2 class="h2">{group.title}</h2>
+              <p class="lede">{group.summary}</p>
+            </div>
           </header>
 
           <ul class="services" role="list">
             {group.services.map((service, index) => (
-              <li class="service" data-reveal style={`--i:${Math.min(index, 5)}`}>
+              <li class="service" data-reveal style={`--i:${index % 3}`}>
+                <span class="service__icon">
+                  <Icon name={service.icon} />
+                </span>
+
                 <h3 class="h3">{service.name}</h3>
                 <p class="muted">{service.description}</p>
               </li>
@@ -78,142 +86,169 @@ const catalogue = {
     ))
   }
 
-  <CtaBand title="Need something that is not on the list?" text="Many of our projects start with an unusual brief. Tell us what you need and we will tell you how we would approach it." />
+  <CtaBand title="Need something that is not on the list?" text="Many of our projects start with an unusual brief. Tell us what you need." />
 </Base>
 
 <style>
   .index {
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
-    margin: 0.75rem 0 0;
+    margin: 0.5rem 0 0;
   }
 
   .index a {
     display: inline-flex;
     align-items: center;
-    gap: 0.75rem;
-    padding-block: 0.25rem;
+    gap: 0.6rem;
+    padding: 0.55rem 1.05rem 0.55rem 0.8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
 
-    font-size: 0.9375rem;
-    font-weight: 500;
+    background: color-mix(in srgb, var(--ink-950) 40%, transparent);
+    backdrop-filter: blur(8px);
+
+    font-size: 0.875rem;
+    font-weight: 560;
     text-decoration: none;
-    transition: color 0.25s;
-  }
-
-  .index__letter {
-    display: grid;
-    place-items: center;
-    width: 1.9rem;
-    height: 1.9rem;
-    border: 1px solid var(--accent-line);
-    border-radius: 50%;
-
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--accent);
     transition:
       background-color 0.3s var(--ease-out),
+      border-color 0.3s var(--ease-out),
       color 0.3s var(--ease-out);
   }
 
-  .index a:hover {
+  .index :global(.icon) {
+    width: 1.2rem;
+    height: 1.2rem;
     color: var(--accent);
+    transition: color 0.3s var(--ease-out);
   }
 
-  .index a:hover .index__letter {
-    background: var(--brass-400);
-    color: var(--ink-950);
+  .index a:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
   }
 
-  @media (min-width: 40rem) {
-    .index {
-      grid-template-columns: repeat(2, auto);
-      justify-content: start;
-      gap: 0.6rem 2.5rem;
-    }
+  .index a:hover :global(.icon) {
+    color: var(--on-accent);
   }
 
-  /* One discipline */
+  /* One discipline: a picture and an introduction, then its services as cards. */
 
-  .group__inner {
-    display: grid;
-    gap: 2.5rem;
-    align-items: start;
+  .group {
+    scroll-margin-top: var(--header-h);
   }
 
   .group__head {
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+    margin-bottom: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .group__media {
+    position: relative;
+  }
+
+  .group__media :global(.media) {
+    border-radius: var(--radius-lg);
+  }
+
+  .group__letter {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 1.125rem;
+    font-weight: 780;
+    font-stretch: 118%;
+  }
+
+  .group__intro {
     display: grid;
     justify-items: start;
     gap: 1.25rem;
   }
 
-  .group__bubble {
-    display: grid;
-    place-items: center;
-    width: 3.25rem;
-    height: 3.25rem;
-    border: 1px solid var(--accent-line);
-    border-radius: 50%;
+  @media (min-width: 60rem) {
+    .group__head {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: clamp(3rem, 6vw, 6rem);
+    }
 
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--accent);
-  }
-
-  .group__count {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--fg-muted);
+    .group__head[data-side='right'] .group__media {
+      order: 2;
+    }
   }
 
   .services {
+    display: grid;
+    gap: 0.9rem;
     margin: 0;
-    border-top: 1px solid var(--line-strong);
   }
 
   .service {
-    position: relative;
     display: grid;
-    gap: 0.5rem;
-    padding: 1.6rem 0;
-    border-bottom: 1px solid var(--line);
+    gap: 0.6rem;
+    align-content: start;
+    padding: 1.6rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+
+    background: var(--surface);
+    transition:
+      border-color 0.4s var(--ease-out),
+      transform 0.4s var(--ease-out),
+      box-shadow 0.4s var(--ease-out);
   }
 
-  .service::after {
-    content: '';
-    position: absolute;
-    inset: auto 0 -1px 0;
-    height: 1px;
+  .service__icon {
+    display: grid;
+    place-items: center;
+    width: 3.1rem;
+    height: 3.1rem;
+    margin-bottom: 0.6rem;
+    border-radius: 50%;
 
-    background: var(--accent-line);
-    transform: scaleX(0);
-    transform-origin: left center;
-    transition: transform 0.6s var(--ease-out);
+    background: var(--paper-2);
+    color: var(--accent-text);
+    transition:
+      background-color 0.4s var(--ease-out),
+      color 0.4s var(--ease-out);
   }
 
-  .service:hover::after {
-    transform: scaleX(1);
+  .service .muted {
+    font-size: 0.9688rem;
   }
 
-  @media (min-width: 48rem) {
-    .service {
-      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-      gap: 2rem;
-      align-items: baseline;
+  .service:hover {
+    border-color: var(--accent);
+    transform: translateY(-0.25rem);
+    box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--text) 45%, transparent);
+  }
+
+  .service:hover .service__icon {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  @media (min-width: 40rem) {
+    .services {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (min-width: 64rem) {
-    .group__inner {
-      grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
-      gap: clamp(3rem, 7vw, 7rem);
-    }
-
-    .group__head {
-      position: sticky;
-      top: calc(var(--header-h) + 2rem);
+    .services {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 </style>

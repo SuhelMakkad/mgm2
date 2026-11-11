@@ -5,6 +5,7 @@ import type { CollectionEntry } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
 import Arrow from '../../../components/Arrow.astro';
 import CtaBand from '../../../components/CtaBand.astro';
+import Icon from '../../../components/Icon.astro';
 import PageHero from '../../../components/PageHero.astro';
 import Portrait from '../../../components/Portrait.astro';
 
@@ -54,7 +55,7 @@ const person = {
 ---
 
 <Base title={`${name}, ${role}`} description={`${name}, ${role} at ${site.shortName}. ${summary}`} ogType="profile" breadcrumbs={crumbs} schema={[person]}>
-  <PageHero label={role} title={name} lede={tagline} crumbs={crumbs} />
+  <PageHero label={role} title={name} lede={tagline} backdrop="team-site" position="center 40%" crumbs={crumbs} />
 
   <section class="section">
     <div class="container profile">
@@ -63,12 +64,20 @@ const person = {
 
         <dl class="profile__facts">
           <div>
-            <dt>Name</dt>
+            <dt>
+              <Icon name="user" />
+              Name
+            </dt>
+
             <dd>{name}</dd>
           </div>
 
           <div>
-            <dt>Role</dt>
+            <dt>
+              <Icon name="briefcase" />
+              Role
+            </dt>
+
             <dd>{role}</dd>
           </div>
         </dl>
@@ -82,7 +91,8 @@ const person = {
         {
           closing && (
             <blockquote class="profile__closing" data-reveal>
-              <p>{closing}</p>
+              <Icon name="quotes-fill" />
+              <p class="h3">{closing}</p>
             </blockquote>
           )
         }
@@ -146,7 +156,7 @@ const person = {
 
   .profile__aside {
     display: grid;
-    gap: 1.75rem;
+    gap: 1.5rem;
     width: min(100%, 24rem);
   }
 
@@ -158,20 +168,25 @@ const person = {
 
   .profile__facts div {
     display: grid;
-    grid-template-columns: 5rem minmax(0, 1fr);
+    grid-template-columns: 6.5rem minmax(0, 1fr);
     gap: 1rem;
+    align-items: start;
     padding-block: 0.9rem;
     border-bottom: 1px solid var(--line);
     font-size: 0.9375rem;
   }
 
   .profile__facts dt {
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1.9;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     color: var(--fg-muted);
+  }
+
+  .profile__facts :global(.icon) {
+    width: 1.15rem;
+    height: 1.15rem;
+    color: var(--accent-text);
   }
 
   .profile__body {
@@ -180,16 +195,20 @@ const person = {
   }
 
   .profile__closing {
-    max-width: 30em;
-    padding-top: 2.25rem;
-    border-top: 1px solid var(--accent-line);
+    display: grid;
+    gap: 1rem;
+    max-width: 40em;
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    border-radius: var(--radius-lg);
 
-    font-family: var(--font-display);
-    font-size: var(--step-2);
-    font-weight: 500;
-    line-height: 1.35;
-    letter-spacing: -0.008em;
-    text-wrap: balance;
+    background: var(--ink-900);
+    color: var(--on-dark);
+  }
+
+  .profile__closing :global(.icon) {
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--accent);
   }
 
   @media (min-width: 60rem) {
@@ -206,10 +225,6 @@ const person = {
   }
 
   /* Previous / next */
-
-  .pager {
-    border-top: 1px solid var(--line);
-  }
 
   .pager__inner {
     display: grid;
@@ -240,10 +255,11 @@ const person = {
     margin-bottom: 0.3rem;
 
     font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
+    font-weight: 650;
+    font-stretch: 110%;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--accent-text);
   }
 
   .pager__hint :global(svg) {

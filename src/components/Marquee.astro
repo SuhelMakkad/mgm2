@@ -1,0 +1,84 @@
+---
+/**
+ * A slow, continuous ticker. It is decorative: the same items are listed properly
+ * elsewhere on the page, so it is hidden from assistive technology. It pauses on hover
+ * and stands still for visitors who prefer reduced motion.
+ */
+interface Props {
+  items: string[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee__track" style={`--count:${items.length}`}>
+    {
+      [0, 1].map(() => (
+        <ul role="list">
+          {items.map((item) => (
+            <li>{item}</li>
+          ))}
+        </ul>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .marquee {
+    overflow: hidden;
+    padding-block: 1.15rem;
+    border-block: 1px solid var(--line);
+    background: var(--bg);
+  }
+
+  .marquee__track {
+    display: flex;
+    width: max-content;
+    animation: marquee calc(var(--count) * 3.2s) linear infinite;
+  }
+
+  .marquee:hover .marquee__track {
+    animation-play-state: paused;
+  }
+
+  .marquee ul {
+    display: flex;
+    margin: 0;
+  }
+
+  .marquee li {
+    display: flex;
+    align-items: center;
+    gap: 2.25rem;
+    padding-right: 2.25rem;
+
+    font-size: 0.9375rem;
+    font-weight: 620;
+    font-stretch: 114%;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .marquee li::after {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    background: var(--accent);
+    transform: rotate(45deg);
+  }
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee__track {
+      animation: none;
+    }
+  }
+</style>

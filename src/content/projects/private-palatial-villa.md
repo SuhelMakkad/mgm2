@@ -2,6 +2,8 @@
 title: Private Palatial Villa
 summary: A private residence taken from structure to hand-finished interiors, with gilded ceilings, carved plaster and faux-marble detailing.
 sector: palatial-villas
+image: ../../assets/images/sector-palatial-villas.jpg
+imageAlt: Illustrative image for Private Palatial Villa
 status: completed
 location: Dubai, UAE
 scope:

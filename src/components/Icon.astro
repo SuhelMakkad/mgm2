@@ -1,0 +1,33 @@
+---
+/**
+ * Inline icon from the Phosphor set. The icon data is read at build time,
+ * so only the icons a page uses end up in its HTML and no script is shipped.
+ *
+ * Browse names at https://phosphoricons.com. Add a suffix for another weight:
+ * `crane-tower`, `crane-tower-bold`, `crane-tower-duotone`, `crane-tower-fill`.
+ */
+import phosphor from '@iconify-json/ph/icons.json';
+
+interface Props {
+  name: string;
+  class?: string;
+}
+
+const { name, class: className } = Astro.props;
+
+const icon = (phosphor.icons as Record<string, { body: string }>)[name];
+
+if (!icon) throw new Error(`Unknown icon "${name}". Check the name at https://phosphoricons.com.`);
+---
+
+<svg class:list={['icon', className]} viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+  <Fragment set:html={icon.body} />
+</svg>
+
+<style>
+  .icon {
+    flex: none;
+    width: 1.5em;
+    height: 1.5em;
+  }
+</style>

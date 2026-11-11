@@ -1,10 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
 import Arrow from '../components/Arrow.astro';
+import Icon from '../components/Icon.astro';
+import Media from '../components/Media.astro';
 import PageHero from '../components/PageHero.astro';
 import SectionHead from '../components/SectionHead.astro';
 
 import { site, contact } from '../data/site';
+import { image } from '../data/images';
 import { serviceGroups } from '../data/services';
 
 const crumbs = [{ label: 'Contact us', href: '/contact/' }];
@@ -18,9 +21,9 @@ const enquiryTypes = [
 ];
 
 const registrationSteps = [
-  { title: 'Send the form', text: 'Choose "Subcontractor registration" or "Supplier registration" and tell us about your company and trade.' },
-  { title: 'We review your details', text: 'Our procurement team checks the enquiry against current and upcoming requirements.' },
-  { title: 'Receive your registration link', text: 'On successful review we email you a link to complete registration as an approved vendor.' },
+  { icon: 'paper-plane-tilt', title: 'Send the form', text: 'Choose subcontractor or supplier registration and tell us about your company and trade.' },
+  { icon: 'magnifying-glass', title: 'We review your details', text: 'Our procurement team checks the enquiry against current and upcoming requirements.' },
+  { icon: 'link', title: 'Receive your registration link', text: 'On successful review we email you a link to complete registration as an approved vendor.' },
 ];
 
 const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : '';
@@ -32,12 +35,7 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
   breadcrumbs={crumbs}
   schema={[{ '@type': 'ContactPage', name: `Contact ${site.name}`, url: new URL('/contact/', Astro.site).href }]}
 >
-  <PageHero
-    label="Contact us"
-    title="Tell us what you are building."
-    lede="Clients, consultants, subcontractors, suppliers and future colleagues: this is the place to start."
-    crumbs={crumbs}
-  />
+  <PageHero label="Contact us" title="Tell us what you are building." backdrop="contact-office" position="center 60%" crumbs={crumbs} />
 
   <section class="section">
     <div class="container contact">
@@ -48,9 +46,13 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
           <div class="field field--full">
             <label for="type">I am getting in touch about</label>
 
-            <select id="type" name="type" required>
-              {enquiryTypes.map((type) => <option value={type.value}>{type.label}</option>)}
-            </select>
+            <span class="field__select">
+              <select id="type" name="type" required>
+                {enquiryTypes.map((type) => <option value={type.value}>{type.label}</option>)}
+              </select>
+
+              <Icon name="caret-down-bold" />
+            </span>
           </div>
 
           <div class="field">
@@ -107,83 +109,88 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
       </div>
 
       <aside class="contact__aside" data-reveal>
-        <div class="card">
-          <h2 class="card__title">Direct</h2>
-
-          <dl class="card__list">
-            <div>
-              <dt>Email</dt>
-
-              <dd>
-                <a href={`mailto:${contact.email}`}>{contact.email}</a>
-              </dd>
-            </div>
-
-            {
-              contact.phone && (
-                <div>
-                  <dt>Phone</dt>
-
-                  <dd>
-                    <a href={telHref}>{contact.phone}</a>
-                  </dd>
-                </div>
-              )
-            }
-
-            <div>
-              <dt>Hours</dt>
-              <dd>{contact.hours}</dd>
-            </div>
-          </dl>
+        <div class="contact__photo">
+          <Media src={image('contact-office')} alt="A modern office building at dusk" ratio="16 / 10" sizes="(min-width: 64rem) 34vw, 100vw" />
         </div>
 
-        <div class="card" id="locations">
-          <h2 class="card__title">{contact.locations.length > 1 ? 'Locations' : 'Location'}</h2>
+        <ul class="channels" role="list" id="locations">
+          <li>
+            <Icon name="envelope-simple" />
+
+            <span>
+              <small>Email</small>
+              <a href={`mailto:${contact.email}`}>{contact.email}</a>
+            </span>
+          </li>
+
+          {
+            contact.phone && (
+              <li>
+                <Icon name="phone" />
+
+                <span>
+                  <small>Phone</small>
+                  <a href={telHref}>{contact.phone}</a>
+                </span>
+              </li>
+            )
+          }
+
+          <li>
+            <Icon name="clock" />
+
+            <span>
+              <small>Hours</small>
+              {contact.hours}
+            </span>
+          </li>
 
           {
             contact.locations.map((location) => (
-              <address class="location">
-                <strong>{location.name}</strong>
-                {location.lines.map((line) => <span>{line}</span>)}
+              <li>
+                <Icon name="map-pin" />
 
-                <a class="arrow-link" href={location.mapUrl} target="_blank" rel="noopener">
-                  Open in Maps
-                  <Arrow />
-                </a>
-              </address>
+                <address>
+                  <small>{location.name}</small>
+                  {location.lines.join(', ')}
+
+                  <a class="channels__map" href={location.mapUrl} target="_blank" rel="noopener">
+                    Open in Maps
+                    <Icon name="arrow-up-right-bold" />
+                  </a>
+                </address>
+              </li>
             ))
           }
-        </div>
+        </ul>
       </aside>
     </div>
   </section>
 
   <section class="section theme-tint" id="register">
-    <div class="container register">
-      <SectionHead
-        label="Subcontractors & suppliers"
-        title="Register to work with us."
-        lede="We keep a register of approved subcontractors and suppliers. Registration starts with the contact form above."
-      >
-        <a class="arrow-link" href="#type" data-preset="subcontractor">
+    <div class="container">
+      <div class="register__head">
+        <SectionHead
+          label="Subcontractors & suppliers"
+          title="Register to work with us."
+          lede="We keep a register of approved subcontractors and suppliers. It starts with the contact form."
+        />
+
+        <a class="btn" href="#type" data-preset="subcontractor" data-reveal>
           Start registration
           <Arrow />
         </a>
-      </SectionHead>
+      </div>
 
       <ol class="process" role="list">
         {
           registrationSteps.map((step, index) => (
             <li data-reveal style={`--i:${index}`}>
-              <span class="process__number" aria-hidden="true">
-                {index + 1}
-              </span>
+              <span class="process__number">{index + 1}</span>
 
-              <div>
-                <h3 class="h3">{step.title}</h3>
-                <p class="muted">{step.text}</p>
-              </div>
+              <Icon name={step.icon} />
+              <h3 class="h3">{step.title}</h3>
+              <p class="muted">{step.text}</p>
             </li>
           ))
         }
@@ -191,27 +198,25 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
     </div>
   </section>
 
-  <section class="section theme-dark" id="careers">
-    <div class="container careers">
+  <section class="careers theme-dark" id="careers">
+    <div class="careers__backdrop" aria-hidden="true">
+      <Media src={image('team-site')} alt="" ratio="fill" sizes="100vw" position="center 35%" />
+    </div>
+
+    <div class="container careers__inner">
       <SectionHead
         label="Careers"
         title="Build your career where experience is valued."
-        lede="Our greatest strength lies in our people. Several of our team have been with us for decades, and we are always glad to hear from engineers, supervisors, craftsmen and professionals who share our standards."
+        lede="Several of our team have been with us for decades. We are always glad to hear from engineers, supervisors, craftsmen and professionals who share our standards."
       />
 
-      <div class="careers__actions" data-reveal>
-        <p>Send your CV and a short note about the role you are looking for.</p>
+      <div class="careers__buttons" data-reveal>
+        <a class="btn" href={`mailto:${contact.careersEmail}?subject=${encodeURIComponent('Career enquiry')}`}>
+          Email your CV
+          <Arrow />
+        </a>
 
-        <div class="careers__buttons">
-          <a class="btn" href={`mailto:${contact.careersEmail}?subject=${encodeURIComponent('Career enquiry')}`}>
-            Email your CV
-            <Arrow />
-          </a>
-
-          <a class="btn btn--ghost" href="#type" data-preset="careers">Use the contact form</a>
-        </div>
-
-        <p class="muted careers__email">{contact.careersEmail}</p>
+        <a class="btn btn--ghost" href="#type" data-preset="careers">Use the contact form</a>
       </div>
     </div>
   </section>
@@ -337,7 +342,7 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
 
   .form {
     display: grid;
-    gap: 1.5rem 1.25rem;
+    gap: 1.4rem 1.1rem;
   }
 
   .field {
@@ -352,18 +357,17 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
 
   .field label {
     font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    font-weight: 650;
   }
 
   .field input,
   .field select,
   .field textarea {
     width: 100%;
-    min-height: 3.1rem;
-    padding: 0.75rem 0.9rem;
+    min-height: 3.35rem;
+    padding: 0.8rem 1rem;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: 10px;
 
     background: var(--surface);
     transition:
@@ -376,12 +380,23 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
     line-height: 1.55;
   }
 
-  .field select {
+  .field__select {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .field__select select {
     appearance: none;
-    padding-right: 2.6rem;
-    background: var(--surface)
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23132127' stroke-width='1.5'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E")
-      no-repeat right 1rem center / 0.75rem;
+    padding-right: 2.75rem;
+  }
+
+  .field__select :global(.icon) {
+    position: absolute;
+    right: 1.1rem;
+    width: 0.9rem;
+    height: 0.9rem;
+    pointer-events: none;
   }
 
   .field input::placeholder {
@@ -390,13 +405,13 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
   }
 
   .field :is(input, select, textarea):hover {
-    border-color: var(--ink-700);
+    border-color: var(--text);
   }
 
   .field :is(input, select, textarea):focus-visible {
     outline: none;
-    border-color: var(--brass-500);
-    box-shadow: 0 0 0 3px rgb(176 138 69 / 0.22);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
   }
 
   .form__foot {
@@ -413,13 +428,14 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
 
   .form__status {
     padding: 1rem 1.1rem;
-    border-left: 2px solid var(--ink-700);
+    border-left: 3px solid var(--text);
+    border-radius: 0 10px 10px 0;
     background: var(--paper-2);
     font-size: 0.9375rem;
   }
 
   .form__status[data-tone='error'] {
-    border-left-color: #a23b2a;
+    border-left-color: #c0301f;
   }
 
   .form :global(button:disabled) {
@@ -437,80 +453,82 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
     }
   }
 
-  /* Aside */
+  /* Aside: a picture and the direct channels */
 
   .contact__aside {
     display: grid;
-    gap: 1.5rem;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
   }
 
-  .card {
+  .channels {
     display: grid;
-    gap: 1.25rem;
-    padding: clamp(1.5rem, 3vw, 2.25rem);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    background: var(--surface);
+    margin: 0;
+    padding: 0.5rem clamp(1.25rem, 2.5vw, 1.75rem) 1rem;
     scroll-margin-top: calc(var(--header-h) + 1.5rem);
   }
 
-  .card__title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--accent);
-  }
-
-  .card__list {
+  .channels li {
     display: grid;
-    margin: 0;
-  }
-
-  .card__list div {
-    display: grid;
-    grid-template-columns: 4.5rem minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
     gap: 1rem;
-    padding-block: 0.75rem;
-    border-top: 1px solid var(--line);
-    font-size: 0.9375rem;
+    align-items: start;
+    padding-block: 1.1rem;
+    border-bottom: 1px solid var(--line);
   }
 
-  .card__list dt {
-    color: var(--fg-muted);
+  .channels li:last-child {
+    border-bottom: 0;
   }
 
-  .card__list a {
-    text-decoration-color: var(--accent-line);
+  .channels li > :global(.icon) {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-top: 0.15rem;
+    color: var(--accent-text);
+  }
+
+  .channels li > :is(span, address) {
+    display: grid;
+    gap: 0.1rem;
+    justify-items: start;
+    font-weight: 560;
     overflow-wrap: anywhere;
   }
 
-  .location {
-    display: grid;
-    justify-items: start;
-    gap: 0.15rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--line);
-  }
-
-  .location strong {
-    margin-bottom: 0.3rem;
-    font-family: var(--font-display);
-    font-size: 1.25rem;
-    font-weight: 500;
-  }
-
-  .location span {
+  .channels small {
+    font-size: 0.75rem;
+    font-weight: 650;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--fg-muted);
   }
 
-  .location .arrow-link {
-    margin-top: 1rem;
+  .channels a {
+    text-decoration-color: var(--accent);
+  }
+
+  .channels__map {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+
+    font-size: 0.875rem;
+    font-weight: 650;
+    color: var(--accent-text);
+    text-decoration: none;
+  }
+
+  .channels__map :global(.icon) {
+    width: 0.9rem;
+    height: 0.9rem;
   }
 
   @media (min-width: 64rem) {
     .contact {
-      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
       gap: clamp(3rem, 6vw, 6rem);
     }
 
@@ -522,72 +540,92 @@ const telHref = contact.phone ? `tel:${contact.phone.replace(/[^\d+]/g, '')}` : 
 
   /* Registration process */
 
-  .register,
-  .careers {
-    display: grid;
-    gap: 3rem;
-    align-items: start;
+  .register__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem 3rem;
+    margin-bottom: clamp(2.25rem, 4.5vw, 3.5rem);
   }
 
   .process {
     display: grid;
+    gap: 0.9rem;
     margin: 0;
-    border-top: 1px solid var(--line-strong);
   }
 
   .process li {
+    position: relative;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 1.5rem;
-    align-items: start;
-    padding-block: 1.75rem;
-    border-bottom: 1px solid var(--line);
+    gap: 0.6rem;
+    align-content: start;
+    padding: 1.75rem;
+    border-radius: var(--radius-lg);
+    background: var(--surface);
   }
 
-  .process li div {
-    display: grid;
-    gap: 0.4rem;
+  .process li > :global(.icon) {
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-bottom: 0.75rem;
+    color: var(--accent-text);
   }
 
   .process__number {
-    display: grid;
-    place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border: 1px solid var(--accent-line);
-    border-radius: 50%;
+    position: absolute;
+    top: 1.1rem;
+    right: 1.4rem;
 
-    font-family: var(--font-display);
-    font-size: 1.125rem;
-    font-weight: 500;
-    color: var(--accent);
+    font-size: 3.25rem;
+    font-weight: 800;
+    font-stretch: 125%;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    color: var(--paper-3);
+  }
+
+  .process .muted {
+    font-size: 0.9688rem;
+  }
+
+  @media (min-width: 52rem) {
+    .process {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
 
   /* Careers */
 
-  .careers__actions {
+  .careers {
+    position: relative;
+    overflow: hidden;
+    padding-block: var(--section);
+    background: var(--ink-950);
+    scroll-margin-top: var(--header-h);
+  }
+
+  .careers__backdrop {
+    position: absolute;
+    inset: 0;
+  }
+
+  .careers__backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(95deg, var(--ink-950) 18%, color-mix(in srgb, var(--ink-950) 62%, transparent) 100%);
+  }
+
+  .careers__inner {
+    position: relative;
     display: grid;
-    gap: 1.5rem;
-    padding-top: 1.75rem;
-    border-top: 1px solid var(--line-strong);
-    font-size: var(--step-1);
+    gap: 2.25rem;
   }
 
   .careers__buttons {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-  }
-
-  .careers__email {
-    font-size: 0.9375rem;
-  }
-
-  @media (min-width: 60rem) {
-    .register,
-    .careers {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: clamp(3rem, 7vw, 7rem);
-    }
   }
 </style>

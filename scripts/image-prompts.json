@@ -1,0 +1,33 @@
+{
+  "style": "Style: photorealistic editorial architectural photograph, natural light, realistic materials, subtle film grain, slightly muted neutral colour grade. Main subject centred so the image still works when cropped to a square or a vertical strip. No text, no logos, no watermarks, no lettering on signs. No recognisable real-world landmark buildings. Any people are small or seen from behind, never a close-up face. Landscape orientation, 3:2 aspect ratio.",
+  "scenes": {
+    "hero-home": "A high-rise concrete tower under construction with a tower crane, seen from a low three-quarter angle at golden hour in a modern Gulf coastal city. Warm low sun rakes across the exposed concrete floor slabs, scaffolding and safety netting. Soft desert haze, a few distant finished glass towers. The tower and crane sit in the right half of the frame. The left third and the lower part of the frame are darker and calmer, with deep shadowed foreground and open sky, leaving room for a headline. Dramatic but realistic.",
+    "about-site": "Two site engineers in white hard hats and high-visibility vests, seen from behind, reviewing a large drawing sheet together on a construction site. A mid-rise concrete building under construction rises in front of them. Soft late-afternoon light, Gulf setting.",
+    "team-site": "A group of five construction professionals in white hard hats and high-visibility vests walking away from the camera across a construction site toward a building under construction. Late-afternoon backlight and long shadows.",
+    "svc-construction": "Workers in protective equipment pouring concrete from a pump hose onto a rebar-reinforced floor slab of a building under construction. Formwork and a rebar grid in the foreground, city haze beyond, late-afternoon light. Wide shot.",
+    "svc-maintenance": "Interior fit-out in progress in a modern commercial space: metal stud partitions, an exposed ceiling grid, new glazing and a worker on a ladder installing ceiling services. A clean, orderly site in soft daylight.",
+    "svc-finishes": "A minimal contemporary interior with seamless micro-cement walls and a polished concrete floor reflecting soft daylight from tall windows. Warm grey tones, empty and refined.",
+    "svc-artistic": "Close-up of a craftsman's gloved hand applying gold leaf with a soft brush to an ornate carved plaster ceiling rosette with an arabesque pattern. Shallow depth of field, warm light.",
+    "sector-infrastructure": "A concrete flyover interchange under construction, with tall piers, precast girders and mobile cranes, set in a desert landscape on the edge of a city. Late afternoon.",
+    "sector-buildings": "A cluster of modern mid-rise and high-rise residential and commercial buildings with glass and stone facades in a Gulf city, seen from street level at a three-quarter angle. Date palms, soft morning light.",
+    "sector-palatial-villas": "A grand private villa in contemporary Arabian style with an arched colonnade, pale stone facade, carved details, a reflecting pool and date palms, at dusk with warm interior lights.",
+    "sector-industrial": "A large modern industrial warehouse with a steel portal-frame structure and metal cladding, loading docks and a clean concrete apron under a clear sky.",
+    "sector-healthcare": "A bright modern hospital corridor with seamless hygienic resin flooring, clean white walls with handrails, and daylight from a window at the far end. Empty and spotless.",
+    "sector-hospitality": "A luxurious hotel lobby with a double-height ceiling, marble floor, decorative metal screens, a statement chandelier and lounge seating. Warm ambient lighting, contemporary Gulf style, no people.",
+    "sector-house-of-worship": "A contemporary mosque with a white dome and a slender minaret, geometric patterned screens and an arched courtyard, at blue hour with soft architectural lighting.",
+    "sector-fuel-facilities": "A modern fuel service station with a sleek cantilevered canopy and LED lighting at dusk. Clean forecourt and fuel dispensers, with no brand marks.",
+    "sector-data-centers": "Exterior of a modern data center: a long windowless facade with metal louvres, rooftop cooling units, a security fence and a service yard, in soft overcast light.",
+    "sector-airports": "An airport terminal with a sweeping curved steel-and-glass roof at sunrise, the apron and jet bridges in the foreground. Aircraft carry no airline liveries.",
+    "sector-university": "A modern university campus building with a shaded colonnade and courtyard in sandstone and glass, with date palms and students as small distant figures. Bright daylight.",
+    "sector-parks": "A landscaped public park with themed artificial rockwork and a small waterfall, winding stamped-concrete paths, palms and lawns. Families appear as small distant figures. Late afternoon.",
+    "sector-schools": "A modern school building with a colourful shaded play court, clean lines and covered walkways, in morning light.",
+    "sector-malls": "Interior of a large shopping mall atrium with a glass roof, several levels with glass balustrades and a polished stone floor in natural light. Shopfronts have no readable signage.",
+    "history-coating": "Close-up of a paint roller applying a protective coating to a concrete wall, half of the wall freshly coated. Raking light reveals the texture. A gloved hand holds the roller.",
+    "history-handshake": "Close-up of two professionals shaking hands on a construction site, one holding a white hard hat under the arm. A building under construction is blurred in the background. Cropped at chest level.",
+    "history-sunrise": "Silhouettes of tower cranes and partly built towers against a vivid sunrise sky over a Gulf city, the sun just above the horizon. An optimistic mood.",
+    "history-skyline": "A wide view across water of a modern Gulf city skyline at dusk, glass towers with lights coming on and a few tower cranes among them.",
+    "hse": "Still life on a site office table: a white safety helmet, a high-visibility vest, safety glasses, rolled architectural drawings and a clipboard, in soft window light.",
+    "contact-office": "Exterior of a modern low-rise office building with a glass facade and stone cladding in a Gulf city at blue hour. Warm interior lighting, an entrance canopy and date palms.",
+    "cta-structure": "Abstract architectural detail looking up at a dramatic concrete and steel structure, with strong geometric lines of beams and columns against a deep dusk sky. Moody and high contrast, with large dark areas."
+  }
+}
